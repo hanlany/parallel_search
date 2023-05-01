@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <numeric>
+#include <filesystem>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -288,8 +289,12 @@ int main(int argc, char* argv[])
     double heuristic_weight = 50;
     int map_num = -1;
 
+    // Experiment control parameters
+    bool log_data = false;
+
     if (!strcmp(argv[1], "wastar"))
     {
+        log_data = true;
         if (argc == 2)
             num_threads = 1;
         else if (argc == 3)
@@ -355,6 +360,7 @@ int main(int argc, char* argv[])
     }
     else if (!strcmp(argv[1], "epase"))
     {
+        log_data = true;
         if (argc == 3)
         {
             num_threads = atoi(argv[2]);
@@ -383,7 +389,8 @@ int main(int argc, char* argv[])
     // Experiment parameters
     int num_runs = 50;
     vector<int> scale_vec = {5, 5, 5, 10, 5};
-    bool visualize_plan = true;
+    // bool visualize_plan = true;
+    bool visualize_plan = false;
     bool load_starts_goals_from_file = true;
 
     // Define planner parameters
@@ -622,6 +629,17 @@ int main(int argc, char* argv[])
     }
     cout << "************************" << endl;
 
+    if (log_data)
+    {
+        string dirname = "../logs/degration/";
+        if (!filesystem::is_directory(dirname) || !filesystem::exists(dirname))
+        {
+            filesystem::create_directory(dirname);
+        }
+        string filename =  "../logs/degration/" + planner_name + ".txt";
+        std::ofstream newFile(filename, std::ios::app);
+        newFile << accumulate(all_maps_time_vec.begin(), all_maps_time_vec.end(), 0.0)/all_maps_time_vec.size() << ",";
+    }
 
 
 }
