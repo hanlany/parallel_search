@@ -4,8 +4,6 @@
 #include <planners/AgepasePlanner.hpp>
  
 #include <fstream>
-#define DEBUG 0
-#define EXPERIMENT 1
 
 using namespace std;
 using namespace ps;

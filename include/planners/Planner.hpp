@@ -2,6 +2,9 @@
 #define PLANNER_HPP
 
 #define VERBOSE 0
+#define DEBUG 0
+#define EXPERIMENT 0
+#define ADAPTIVE 0
 
 #include <functional>
 #include <future>

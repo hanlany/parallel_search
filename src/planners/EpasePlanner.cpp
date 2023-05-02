@@ -3,7 +3,6 @@
 #include <planners/EpasePlanner.hpp>
 #include <fstream>
 
-#define EXPERIMENT 1
 
 using namespace std;
 using namespace ps;
