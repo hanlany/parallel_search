@@ -33,6 +33,7 @@ set(SOURCES
     src/planners/GepasePlanner.cpp
     src/planners/AgepasePlanner.cpp
     src/planners/MplpPlanner.cpp
+    src/planners/BatchPlanner.cpp
 )
 
 add_executable(run_robot_nav_2d

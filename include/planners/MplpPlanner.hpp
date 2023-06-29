@@ -41,7 +41,7 @@ class MplpPlanner : public Planner
         int num_threads_;
         mutable LockType lock_;
         mutable LockType lock_2_;
-        mutable std::vector<LockType> lock_vec_; 
+        mutable std::vector<LockType> lock_vec_;
         std::vector<std::future<void>> edge_evaluation_futures_;
         std::vector<EdgePtrType> edge_evaluation_vec_;
         std::vector<int> edge_evaluation_status_;
