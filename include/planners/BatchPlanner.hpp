@@ -26,7 +26,7 @@ class BatchPlanner : public Planner
 
         // Data structures
         StateQueueMinType state_open_list_;
-        std::vector<StatePrtType> batch_process_list_;
+        std::vector<StatePtrType> batch_process_list_;
         
         // Multi-threading members
         int num_threads_;

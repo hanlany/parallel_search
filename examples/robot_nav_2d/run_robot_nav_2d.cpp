@@ -192,6 +192,8 @@ void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& actio
     action_params["length"] = 25;
     action_params["footprint_size"] = 16;
     action_params["cache_footprint"] = 1;
+    action_params["inflate_evaluation"] = 1;
+    action_params["inflate_eval_in_ms"] = 1;
 
     ParamsType expensive_action_params = action_params;
     expensive_action_params["cache_footprint"] = 1;

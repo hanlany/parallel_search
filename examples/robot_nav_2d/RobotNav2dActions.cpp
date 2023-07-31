@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <sbpl/utils/utils.h>
+#include <chrono>
+#include <thread>
 #include "RobotNav2dActions.hpp"
 
 using namespace std;
@@ -15,6 +17,10 @@ bool RobotNav2dAction::CheckPreconditions(const StateVarsType& state)
 ActionSuccessor RobotNav2dAction::GetSuccessor(const StateVarsType& state_vars, int thread_id)
 {
     vector<double> next_state_vars(3, 0);
+    if (params_["inflate_evaluation"])
+    {
+        this_thread::sleep_for(chrono::milliseconds((int)params_["inflate_eval_in_ms"]));
+    }
     for (int i = 0; i < params_["length"]; ++i)
     {
         next_state_vars[0] = state_vars[0] + i*move_dir_[0];
