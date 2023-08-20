@@ -18,6 +18,7 @@ public:
     virtual ActionSuccessor GetSuccessor(const StateVarsType& state_vars, int thread_id=0)=0; 
     virtual ActionSuccessor GetSuccessorLazy(const StateVarsType& state_vars, int thread_id=0){}; 
     virtual ActionSuccessor Evaluate(const StateVarsType& parent_state_vars, const StateVarsType& child_state_vars, int thread_id=0){}; 
+    virtual std::vector<ActionSuccessor> EvaluateBatch(std::vector<std::pair<StateVarsType, StateVarsType>> state_vars_pair_list, int thread_id=0){};
     std::string GetType() const {return type_;};
     bool IsExpensive() const {return is_expensive_;};
     bool operator==(const Action& other_action) const

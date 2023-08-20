@@ -97,6 +97,22 @@ ActionSuccessor RobotNav2dAction::Evaluate(const StateVarsType& parent_state_var
     return GetSuccessor(parent_state_vars, thread_id);
 }
 
+vector<ActionSuccessor> RobotNav2dAction::EvaluateBatch(vector<pair<StateVarsType, StateVarsType>> state_vars_pair_list, int thread_id)
+{
+    // Note: This is a proxy function to evaluate edges in batch.
+    // Manually inflateing evaluation cost.
+    params_["inflate_evaluation"] = 0;
+    this_thread::sleep_for(chrono::milliseconds((int)params_["inflate_eval_in_ms"]));
+    
+    // Evaluate each state pair
+    vector<ActionSuccessor> action_successors;
+    for (auto& state_vars_pair : state_vars_pair_list)
+    {
+        action_successors.push_back(Evaluate(state_vars_pair.first, state_vars_pair.second, thread_id));
+    }
+    return action_successors;
+}
+
 bool RobotNav2dAction::isValidCell(int x, int y)
 {   
     int x_limit =  map_.size();

@@ -16,8 +16,9 @@ public:
     : Action(type, params, is_expensive), map_(map), cost_factor_map_(cost_factor_map) {};
     bool CheckPreconditions(const StateVarsType& state); 
     ActionSuccessor GetSuccessor(const StateVarsType& state_vars, int thread_id); 
-    ActionSuccessor GetSuccessorLazy(const StateVarsType& state_vars, int thread_id); 
+    ActionSuccessor GetSuccessorLazy(const StateVarsType& state_vars, int thread_id);
     ActionSuccessor Evaluate(const StateVarsType& parent_state_vars, const StateVarsType& child_state_vars, int thread_id=0);
+    std::vector<ActionSuccessor> EvaluateBatch(std::vector<std::pair<StateVarsType, StateVarsType>> state_vars_pair_list, int thread_id=0);
      
 protected:
     bool isValidCell(int x, int y);
