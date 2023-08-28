@@ -128,6 +128,11 @@ bool isGoalState(const StateVarsType& state_vars, double dist_thresh)
     return (computeHeuristic(state_vars, dist_thresh) <= 0);
 }
 
+vector<StateVarsType> getExplicitGraph(const StateVarsType& state_vars, vector<shared_ptr<Action>>& action_ptrs)
+{
+    return action_ptrs[0]->GetExplicitGraph(state_vars);
+}
+
 size_t StateKeyGenerator(const StateVarsType& state_vars)
 { 
     int x = round(state_vars[0]); 
@@ -189,10 +194,12 @@ size_t EdgeKeyGenerator(const EdgePtrType& edge_ptr)
 void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& action_params, vector<vector<int>>& map, vector<vector<double>>& cost_factor_map)
 {
     // Define action parameters
-    action_params["length"] = 25;
-    action_params["footprint_size"] = 16;
+    // action_params["length"] = 25;
+    // action_params["footprint_size"] = 16;
+    action_params["length"] = 1;
+    action_params["footprint_size"] = 1;
     action_params["cache_footprint"] = 1;
-    action_params["inflate_evaluation"] = 1;
+    action_params["inflate_evaluation"] = 0;
     action_params["inflate_eval_in_ms"] = 1;
 
     ParamsType expensive_action_params = action_params;
@@ -251,6 +258,7 @@ void constructPlanner(string planner_name, shared_ptr<Planner>& planner_ptr, vec
     planner_ptr->SetHeuristicGenerator(bind(computeHeuristic, placeholders::_1, action_params["length"]));
     planner_ptr->SetStateToStateHeuristicGenerator(bind(computeHeuristicStateToState, placeholders::_1, placeholders::_2));
     planner_ptr->SetGoalChecker(bind(isGoalState, placeholders::_1, action_params["length"]));
+    planner_ptr->SetExplicitGraph(bind(getExplicitGraph, placeholders::_1, action_ptrs));
 }
 
 void loadStartsGoalsFromFile(vector<vector<double>>& starts, vector<vector<double>>& goals, int scale, int num_runs, const string& path)
@@ -302,9 +310,19 @@ int main(int argc, char* argv[])
     }
     else if (!strcmp(argv[1], "mplp"))
     {
-        if (argc != 3) throw runtime_error("Format: run_robot_nav_2d [planner_name] [num_threads]");
-        if (atoi(argv[2]) < 4) throw runtime_error("mplp requires a minimum of 4 threads");
-        num_threads = atoi(argv[2]);
+        if (argc == 3)
+        {
+            if (atoi(argv[2]) < 4) throw runtime_error("mplp requires a minimum of 4 threads");
+            num_threads = atoi(argv[2]);
+        }
+        if (argc == 4)
+        {
+            if (atoi(argv[2]) < 4) throw runtime_error("mplp requires a minimum of 4 threads");
+            num_threads = atoi(argv[2]);
+            heuristic_weight = atof(argv[3]);
+        }
+        else
+            throw runtime_error("Format: run_robot_nav_2d [planner_name] [num_threads] [heuristic_weight]");
     }
     else if (!strcmp(argv[1], "arastar"))
     {

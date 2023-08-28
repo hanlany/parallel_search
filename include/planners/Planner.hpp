@@ -41,6 +41,7 @@ class Planner
         void SetHeuristicGenerator(std::function<double(const StateVarsType&)> callback);
         void SetStateToStateHeuristicGenerator(std::function<double(const StateVarsType&, const StateVarsType&)> callback);
         void SetPostProcessor(std::function<void(std::vector<PlanElement>&, double&)> callback);
+        void SetExplicitGraph(std::function<std::vector<StateVarsType>(const StateVarsType&)> callback);
 
     protected:
         
@@ -77,6 +78,7 @@ class Planner
         std::function<double(const StateVarsType&, const StateVarsType&)> binary_heuristic_generator_;
         std::function<double(const StateVarsType&)> goal_checker_;
         std::function<void(std::vector<PlanElement>&, double&)> post_processor_;
+        std::function<std::vector<StateVarsType>(const StateVarsType&)> explicit_graph_generator_;
 
         // Statistics
         std::vector<PlanElement> plan_;

@@ -19,10 +19,11 @@ public:
     ActionSuccessor GetSuccessorLazy(const StateVarsType& state_vars, int thread_id);
     ActionSuccessor Evaluate(const StateVarsType& parent_state_vars, const StateVarsType& child_state_vars, int thread_id=0);
     std::vector<ActionSuccessor> EvaluateBatch(std::vector<std::pair<StateVarsType, StateVarsType>> state_vars_pair_list, int thread_id=0);
+    std::vector<StateVarsType> GetExplicitGraph(const StateVarsType& root_state_vars);
      
 protected:
-    bool isValidCell(int x, int y);
     bool inRange(int x, int y);
+    bool isValidCell(int x, int y);
     std::vector<std::pair<int, int>> getFootPrintRectangular(int x, int y, int footprint_size);
     std::vector<double> move_dir_;
     std::vector<std::vector<int>> map_;

@@ -56,6 +56,11 @@ void Planner::SetPostProcessor(std::function<void(vector<PlanElement>& plan, dou
     post_processor_ = callback;
 }
 
+void Planner::SetExplicitGraph(std::function<vector<StateVarsType>(const StateVarsType&)> callback)
+{
+    explicit_graph_generator_ = callback;
+}
+
 std::vector<PlanElement> Planner::GetPlan() const
 {
     return plan_;
