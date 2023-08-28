@@ -12,7 +12,7 @@ class BatchPlanner : public Planner
     public:
         BatchPlanner(ParamsType planner_params);
         ~BatchPlanner();
-        virtual bool Plan();
+        bool Plan();
 
     protected:
         void initialize();
@@ -52,6 +52,7 @@ class BatchPlanner : public Planner
         std::vector<EdgePtrType> edge_evaluation_vec_;
         std::vector<int> edge_evaluation_status_;
         std::shared_ptr<std::thread> batch_process_;
+        std::shared_ptr<std::thread> delegate_edges_process_;
         std::shared_ptr<std::thread> monitor_paths_process_;
 
         // Control variables

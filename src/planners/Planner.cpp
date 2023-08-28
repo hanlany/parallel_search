@@ -110,8 +110,10 @@ void Planner::resetStates()
         it->second->ResetFValue();
         it->second->ResetVValue();
         it->second->ResetIncomingEdgePtr();        
-        it->second->UnsetVisited();     
+        it->second->UnsetVisited();
         it->second->UnsetBeingExpanded();      
+        it->second->UnsetEvaluated();
+        it->second->UnsetValid();
         it->second->num_successors_ = 0;   
         it->second->num_expanded_successors_ = 0;   
     }

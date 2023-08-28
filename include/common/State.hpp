@@ -28,10 +28,6 @@ public:
 	double GetGValue() const {return g_val_;};
 	void ResetGValue() {g_val_ = std::numeric_limits<double>::max();};
 
-	void SetVValue(const double& v_val) {v_val_ = v_val;};
-	double GetVValue() const {return v_val_;}; 
-	void ResetVValue() {v_val_ = std::numeric_limits<double>::max();};
-
 	void SetHValue(const double& h_val) {h_val_ = h_val;};
 	double GetHValue() const {return h_val_;};
 	void ResetHValue() {h_val_ = -1;};
@@ -40,6 +36,14 @@ public:
 	double GetFValue() const {return f_val_;}; 
 	void ResetFValue() {f_val_ = std::numeric_limits<double>::max();};
 
+	void SetVValue(const double& v_val) {v_val_ = v_val;};
+	double GetVValue() const {return v_val_;}; 
+	void ResetVValue() {v_val_ = std::numeric_limits<double>::max();};
+
+	void SetBValue(const double& b_val) {b_val_ = b_val;};
+	double GetBValue() const {return b_val_;}; 
+	void ResetBValue() {b_val_ = std::numeric_limits<double>::max();};
+
 	void SetVisited() {is_visited_ = true;};
 	void UnsetVisited() {is_visited_ = false;};
 	bool IsVisited() {return is_visited_;};
@@ -47,6 +51,14 @@ public:
     void SetBeingExpanded() {being_expanded_ = true;};
     void UnsetBeingExpanded() {being_expanded_ = false;};
     bool IsBeingExpanded() {return being_expanded_;};
+
+	void SetEvaluated() {is_eval_ = true;};
+	void UnsetEvaluated() {is_eval_ = false;};
+	bool IsEvaluated() {return is_eval_;};
+
+	void SetValid() {is_valid_ = true;};
+	void UnsetValid() {is_valid_ = false;};
+	bool IsValid() {return is_valid_;};
 
     void SetIncomingEdgePtr(EdgePtrType edge_ptr) {incoming_edge_ptr_ = edge_ptr;};
     EdgePtrType GetIncomingEdgePtr() {return incoming_edge_ptr_;};
@@ -68,7 +80,10 @@ private:
     double h_val_;
 	double f_val_;
 	double v_val_;
+	double b_val_;
 	std::atomic<bool> is_visited_;
+	std::atomic<bool> is_valid_;
+	std::atomic<bool> is_eval_;
     std::atomic<bool> being_expanded_;
     EdgePtrType incoming_edge_ptr_;
 };

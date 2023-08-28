@@ -16,6 +16,7 @@
 #include <planners/GepasePlanner.hpp>
 #include <planners/AgepasePlanner.hpp>
 #include <planners/MplpPlanner.hpp>
+#include <planners/BatchPlanner.hpp>
 
 using namespace std;
 using namespace ps;
@@ -196,7 +197,7 @@ void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& actio
     // Define action parameters
     // action_params["length"] = 25;
     // action_params["footprint_size"] = 16;
-    action_params["length"] = 1;
+    action_params["length"] = 2;
     action_params["footprint_size"] = 1;
     action_params["cache_footprint"] = 1;
     action_params["inflate_evaluation"] = 0;
@@ -249,6 +250,8 @@ void constructPlanner(string planner_name, shared_ptr<Planner>& planner_ptr, vec
         planner_ptr = make_shared<AgepasePlanner>(planner_params);
     else if (planner_name == "mplp")
         planner_ptr = make_shared<MplpPlanner>(planner_params); 
+    else if (planner_name == "bplp")
+        planner_ptr = make_shared<BatchPlanner>(planner_params);
     else
         throw runtime_error("Planner type not identified!");      
 
@@ -318,6 +321,22 @@ int main(int argc, char* argv[])
         if (argc == 4)
         {
             if (atoi(argv[2]) < 4) throw runtime_error("mplp requires a minimum of 4 threads");
+            num_threads = atoi(argv[2]);
+            heuristic_weight = atof(argv[3]);
+        }
+        else
+            throw runtime_error("Format: run_robot_nav_2d [planner_name] [num_threads] [heuristic_weight]");
+    }
+    else if (!strcmp(argv[1], "bplp"))
+    {
+        if (argc == 3)
+        {
+            if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
+            num_threads = atoi(argv[2]);
+        }
+        if (argc == 4)
+        {
+            if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
             num_threads = atoi(argv[2]);
             heuristic_weight = atof(argv[3]);
         }

@@ -329,6 +329,13 @@ void BatchPlanner::batchProcess()
 void BatchPlanner::initializeSelect()
 {
     // For now, do it explicitly
+    vector<StateVarsType> all_states_vars;
+    all_states_vars = explicit_graph_generator_(start_state_ptr_->GetStateVars());
+    // Construct all states
+    for (auto& state_vars: all_states_vars)
+    {
+        StatePtrType state_ptr = constructState(state_vars);
+    }
     
 }
 
