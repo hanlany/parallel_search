@@ -149,7 +149,9 @@ size_t EdgeKeyGenerator(const EdgePtrType& edge_ptr)
     int controller_id;
     auto action_ptr = edge_ptr->action_ptr_;
 
-    if (action_ptr->GetType() ==  "MoveUp")
+    if (action_ptr == NULL)
+        controller_id = 16;
+    else if (action_ptr->GetType() ==  "MoveUp")
         controller_id = 0;
     else if (action_ptr->GetType() ==  "MoveUpLong")
         controller_id = 1;
