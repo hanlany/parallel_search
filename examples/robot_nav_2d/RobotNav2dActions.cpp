@@ -19,7 +19,12 @@ ActionSuccessor RobotNav2dAction::GetSuccessor(const StateVarsType& state_vars, 
     vector<double> next_state_vars(3, 0);
     if (params_["inflate_evaluation"])
     {
-        this_thread::sleep_for(chrono::milliseconds((int)params_["inflate_eval_in_ms"]));
+        double dummy = 0;
+        for (int i = 0; i < (int)params_["inflate_eval_loops"]; i++)
+        {
+            dummy += floor(pow(0.125, 0.5));
+        }
+        next_state_vars[0] += dummy;
     }
     for (int i = 0; i < params_["length"]; ++i)
     {
@@ -97,29 +102,44 @@ ActionSuccessor RobotNav2dAction::Evaluate(const StateVarsType& parent_state_var
     return GetSuccessor(parent_state_vars, thread_id);
 }
 
-vector<ActionSuccessor> RobotNav2dAction::EvaluateBatch(vector<pair<StateVarsType, StateVarsType>> state_vars_pair_list, int thread_id)
+vector<bool> RobotNav2dAction::StateValidateBatch(vector<StateVarsType>& state_vars_vec, int thread_id)
 {
     // Note: This is a proxy function to evaluate edges in batch.
     // Manually inflateing evaluation cost.
-    // params_["inflate_evaluation"] = 0;
-    // this_thread::sleep_for(chrono::milliseconds((int)params_["inflate_eval_in_ms"]));
+    if (params_["inflate_evaluation"])
+    {
+        double dummy = 0;
+        for (int i = 0; i < (int)params_["inflate_eval_loops"]; i++)
+        {
+            dummy += floor(pow(0.125, 0.5));
+        }
+        state_vars_vec[0][0] += dummy;
+    }
+    vector<bool> is_valid_vec = vector<bool>(state_vars_vec.size(), true);
+    for (auto& state_vars : state_vars_vec)
+    {
+        auto footprint = getFootPrintRectangular(state_vars[0], state_vars[1], params_["footprint_size"]);
+
+        for (auto& cell : footprint)
+        {
+            if (!isValidCell(cell.first, cell.second))
+            {
+                is_valid_vec.push_back(false);
+                break;
+            }
+        }
+    }
     
-    // Evaluate each state pair
-    // vector<ActionSuccessor> action_successors;
-    // for (auto& state_vars_pair : state_vars_pair_list)
-    // {
-    //     action_successors.push_back(Evaluate(state_vars_pair.first, state_vars_pair.second, thread_id));
-    // }
-    // return action_successors;
+    return is_valid_vec;
 }
 
 vector<StateVarsType> RobotNav2dAction::GetExplicitGraph(const StateVarsType& root_state_vars)
 {
     // Get explicit graph, all 2D cells in this case
     vector<StateVarsType> explicit_graph;
-    for (int i = fmod(root_state_vars[0],params_["length"]); i < map_.size(); i = i + params_["length"])
+    for (double i = fmod(root_state_vars[0],params_["length"]-1); i < map_.size(); i = i + params_["length"]-1)
     {
-        for (int j = fmod(root_state_vars[1],params_["length"]); j < map_[0].size(); j = j + params_["length"])
+        for (double j = fmod(root_state_vars[1],params_["length"]-1); j < map_[0].size(); j = j + params_["length"]-1)
         {
             explicit_graph.push_back(vector<double>{i, j, root_state_vars[2]});
         }

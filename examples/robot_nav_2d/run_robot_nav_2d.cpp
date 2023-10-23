@@ -203,7 +203,7 @@ void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& actio
     action_params["footprint_size"] = 1;
     action_params["cache_footprint"] = 1;
     action_params["inflate_evaluation"] = 0;
-    action_params["inflate_eval_in_ms"] = 1;
+    action_params["inflate_eval_loops"] = 2500;
 
     ParamsType expensive_action_params = action_params;
     expensive_action_params["cache_footprint"] = 1;
@@ -296,8 +296,9 @@ void loadStartsGoalsFromFile(vector<vector<double>>& starts, vector<vector<doubl
 int main(int argc, char* argv[])
 {
     int num_threads;
+    int batch_size = 2000;
     double time_budget = 0;
-    bool apply_cost_factor_map = true;
+    bool apply_cost_factor_map = false;
     double heuristic_weight = 50;
     double heuristic_reduction = 0.5;
 
@@ -331,15 +332,16 @@ int main(int argc, char* argv[])
     }
     else if (!strcmp(argv[1], "bplp"))
     {
+        num_threads = 3;
         if (argc == 3)
         {
             if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
-            num_threads = atoi(argv[2]);
+            batch_size = atoi(argv[2]);
         }
         if (argc == 4)
         {
             if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
-            num_threads = atoi(argv[2]);
+            batch_size = atoi(argv[2]);
             heuristic_weight = atof(argv[3]);
         }
         else
@@ -401,8 +403,10 @@ int main(int argc, char* argv[])
     
 
     // Experiment parameters
-    int num_runs = 50;
-    vector<int> scale_vec = {5, 5, 5, 10, 5};
+    int num_runs = 10;
+    // vector<int> scale_vec = {2, 2, 2, 4, 2};
+    vector<int> scale_vec = {1, 1, 1, 1, 1};
+    // vector<int> scale_vec = {5, 5, 5, 10, 5};
     bool visualize_plan = true;
     bool load_starts_goals_from_file = true;
 
@@ -418,7 +422,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        planner_params["timeout"] = 5;
+        planner_params["timeout"] = 10;
     }
     
     // Read map
@@ -461,7 +465,9 @@ int main(int argc, char* argv[])
     vector<int> all_maps_num_edges_vec;
     unordered_map<string, vector<double>> all_action_eval_times;
 
-    for (int m_idx = 0; m_idx < map_vec.size(); ++m_idx)
+    // for (int m_idx = 0; m_idx < map_vec.size(); ++m_idx)
+    int m_idx = 1;
+    if (1)
     {
         auto map = map_vec[m_idx];
         auto img = img_vec[m_idx];
@@ -507,9 +513,11 @@ int main(int argc, char* argv[])
         
         int num_success = 0;
         for (int exp_idx = 0; exp_idx < num_runs; ++exp_idx)
+        // int exp_idx = 8;
+        // if (1)
         {
             cout << "Experiment: " << exp_idx;
-
+            start_goal_idx = exp_idx;
             if (start_goal_idx >= starts.size()) 
                 start_goal_idx = 0;
 
@@ -589,6 +597,7 @@ int main(int argc, char* argv[])
                 cv::resize(img2, img2, cv::Size(4*img.cols/scale, 4*img.rows/scale));
                 cv::imshow("Plan", img2);
                 cv::waitKey(500);
+                // cv::waitKey(0);
 
                 img2.setTo(cv::Scalar(0,0,0));
                 cv::imshow("Plan", img2);
@@ -605,7 +614,10 @@ int main(int argc, char* argv[])
         cout << endl << "------------- Mean jobs per thread -------------" << endl;
         for (int tidx = 0; tidx < planner_params["num_threads"]; ++tidx)
         {
-            cout << "thread: " << tidx << " jobs: " << jobs_per_thread[tidx]/num_success << endl;
+            if (num_success != 0)
+            {
+                cout << "thread: " << tidx << " jobs: " << jobs_per_thread[tidx]/num_success << endl;
+            }
         }
         cout << "************************" << endl;
     
