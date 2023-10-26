@@ -339,7 +339,7 @@ void MplpPlanner::delegateEdges()
         int thread_id = 3; // T0: lazy search, T1: monitorPaths, T2: delegateEdges
         bool edge_evaluation_assigned = false;
        
-        while(!edge_evaluation_assigned)
+        while(!edge_evaluation_assigned && !terminate_)
         {
             lock_vec_[thread_id].lock();
             // cout << "Checking thread " << thread_id << endl;
