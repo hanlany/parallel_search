@@ -19,6 +19,7 @@ class Planner
         typedef std::unordered_map<size_t, StatePtrType> StatePtrMapType; 
         // Lower priority states will be in the front
         typedef smpl::intrusive_heap<State, IsLesserState> StateQueueMinType;
+        typedef smpl::intrusive_heap<State, IsLesserStateH> StateQueueHeuristicMinType;
         typedef std::unordered_map<size_t, EdgePtrType> EdgePtrMapType;
         // Higher priority edge will be in the front
         typedef smpl::intrusive_heap<Edge, IsGreaterEdge> EdgeQueueMaxType;
@@ -42,7 +43,6 @@ class Planner
         void SetStateToStateHeuristicGenerator(std::function<double(const StateVarsType&, const StateVarsType&)> callback);
         void SetPostProcessor(std::function<void(std::vector<PlanElement>&, double&)> callback);
         void SetExplicitGraph(std::function<std::vector<StateVarsType>(const StateVarsType&)> callback);
-
     protected:
         
         virtual void initialize();
