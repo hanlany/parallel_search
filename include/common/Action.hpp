@@ -16,10 +16,11 @@ public:
     virtual ~Action(){};
     virtual bool CheckPreconditions(const StateVarsType& state)=0; 
     virtual ActionSuccessor GetSuccessor(const StateVarsType& state_vars, int thread_id=0)=0; 
-    virtual ActionSuccessor GetSuccessorLazy(const StateVarsType& state_vars, int thread_id=0){}; 
-    virtual ActionSuccessor Evaluate(const StateVarsType& parent_state_vars, const StateVarsType& child_state_vars, int thread_id=0){}; 
-    virtual std::vector<bool> StateValidateBatch(std::vector<StateVarsType>& state_vars_vec, int thread_id=0){};
-    virtual std::vector<StateVarsType> GetExplicitGraph(const StateVarsType& root_state_vars){};
+    virtual ActionSuccessor GetSuccessorLazy(const StateVarsType& state_vars, int thread_id=0)=0; 
+    virtual ActionSuccessor GetSuccessorProxy(const StateVarsType& state_vars, int thread_id=0)=0; 
+    virtual ActionSuccessor Evaluate(const StateVarsType& parent_state_vars, const StateVarsType& child_state_vars, int thread_id=0)=0; 
+    virtual std::vector<bool> StateValidateBatch(std::vector<StateVarsType>& state_vars_vec, int thread_id=0)=0;
+    virtual std::vector<StateVarsType> GetExplicitGraph(const StateVarsType& root_state_vars)=0;
     std::string GetType() const {return type_;};
     bool IsExpensive() const {return is_expensive_;};
     bool operator==(const Action& other_action) const

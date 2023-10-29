@@ -13,7 +13,7 @@ using namespace ps;
  */
 double computeHeuristic(const StateVarsType& state_vars)
 {
-
+    return 0;
 }
 
 /**
@@ -26,7 +26,7 @@ double computeHeuristic(const StateVarsType& state_vars)
  */
 double computeHeuristicStateToState(const StateVarsType& state_vars_1, const StateVarsType& state_vars_2)
 {
-
+    return 0;
 }
 
 /**
@@ -38,7 +38,7 @@ double computeHeuristicStateToState(const StateVarsType& state_vars_1, const Sta
  */
 bool isGoalState(const StateVarsType& state_vars)
 {
-
+    return 0;
 }
 
 /**
@@ -50,7 +50,7 @@ bool isGoalState(const StateVarsType& state_vars)
  */
 size_t StateKeyGenerator(const StateVarsType& state_vars)
 { 
-
+    return 0;
 }
 
 /**
@@ -62,7 +62,7 @@ size_t StateKeyGenerator(const StateVarsType& state_vars)
  */
 size_t EdgeKeyGenerator(const EdgePtrType& edge_ptr)
 {
-
+    return 0;
 }
 
 int main(int argc, char* argv[])
