@@ -17,6 +17,7 @@ public:
     bool CheckPreconditions(const StateVarsType& state); 
     ActionSuccessor GetSuccessor(const StateVarsType& state_vars, int thread_id); 
     ActionSuccessor GetSuccessorLazy(const StateVarsType& state_vars, int thread_id);
+    ActionSuccessor GetSuccessorProxy(const StateVarsType& state_vars, int thread_id);
     ActionSuccessor Evaluate(const StateVarsType& parent_state_vars, const StateVarsType& child_state_vars, int thread_id=0);
     std::vector<bool> StateValidateBatch(std::vector<StateVarsType>& state_vars_vec, int thread_id=0);
     std::vector<StateVarsType> GetExplicitGraph(const StateVarsType& root_state_vars);

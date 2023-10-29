@@ -97,6 +97,33 @@ ActionSuccessor RobotNav2dAction::GetSuccessorLazy(const StateVarsType& state_va
 
 }
 
+ActionSuccessor RobotNav2dAction::GetSuccessorProxy(const StateVarsType& state_vars, int thread_id)
+{
+    vector<double> final_state_vars(3, 0);
+    final_state_vars[0] = state_vars[0] + (params_["length"] - 1)*move_dir_[0];
+    final_state_vars[1] = state_vars[1] + (params_["length"] - 1)*move_dir_[1];
+    final_state_vars[2] = state_vars[2];
+
+    int x_limit =  map_.size();
+    int y_limit =  map_[0].size();
+    bool in_range = inRange(final_state_vars[0], final_state_vars[1]);
+   
+    if (!in_range)
+        return ActionSuccessor(false, {make_pair(StateVarsType(), -DINF)});
+
+    bool is_collision =  false;
+
+    double cost = pow(pow((final_state_vars[0] - state_vars[0]), 2) + pow((final_state_vars[1] - state_vars[1]), 2), 0.5);;
+    
+    if (!cost_factor_map_.empty())
+    {
+        cost *= cost_factor_map_[state_vars[0]][state_vars[1]];   
+    }
+
+    return ActionSuccessor(true, {make_pair(final_state_vars, cost)});
+
+}
+
 ActionSuccessor RobotNav2dAction::Evaluate(const StateVarsType& parent_state_vars, const StateVarsType& child_state_vars, int thread_id)
 {
     return GetSuccessor(parent_state_vars, thread_id);
@@ -116,6 +143,8 @@ vector<bool> RobotNav2dAction::StateValidateBatch(vector<StateVarsType>& state_v
         state_vars_vec[0][0] += dummy;
     }
     vector<bool> is_valid_vec = vector<bool>(state_vars_vec.size(), true);
+    int invalid_count = 0;
+    int ind = 0;
     for (auto& state_vars : state_vars_vec)
     {
         auto footprint = getFootPrintRectangular(state_vars[0], state_vars[1], params_["footprint_size"]);
@@ -124,12 +153,15 @@ vector<bool> RobotNav2dAction::StateValidateBatch(vector<StateVarsType>& state_v
         {
             if (!isValidCell(cell.first, cell.second))
             {
-                is_valid_vec.push_back(false);
+                is_valid_vec[ind] = false;
+                invalid_count++;
                 break;
             }
         }
+        ind++;
     }
     
+    cout << "Num of invalid states in batch: " << invalid_count << endl;
     return is_valid_vec;
 }
 
