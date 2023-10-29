@@ -5,8 +5,8 @@
 #include <memory>
 #include <unordered_map>
 #include <mutex>
-#include <unordered_map>
 #include "intrusive_heap.h"
+#include <queue>
 
 namespace ps
 {

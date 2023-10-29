@@ -23,7 +23,7 @@ b_val_(DINF),
 h_val_(-1),
 is_visited_(false),
 is_eval_(false),
-is_valid_(false),
+is_valid_(true),
 being_expanded_(false),
 num_successors_(0),
 num_expanded_successors_(0),
@@ -43,7 +43,10 @@ void State::Print(string str)
     << " | h: " << GetHValue() 
     << " | f: "<< GetFValue() 
     << " | v: "<< GetVValue() 
+    << " | b: "<< GetBValue()
     << " | is_closed: " << IsVisited()
+    << " | is_eval: " << IsEvaluated()
+    << " | is_valid: " << IsValid()
     << " | being_expanded_: " << IsBeingExpanded()
     << " | num_successors: " << num_successors_ 
     << " | num_expanded_successors: " << num_expanded_successors_ 
@@ -56,6 +59,15 @@ bool IsLesserState::operator()(const State& lhs, const State& rhs)
         return lhs.GetStateID() < rhs.GetStateID();
     else
 		return lhs.GetFValue() < rhs.GetFValue();
+}
+
+bool IsLesserStateStd::operator()(const State* lhs, const State* rhs)
+{
+    if (lhs->GetFValue() == rhs->GetFValue()) // tie breaking
+        return lhs->GetStateID() < rhs->GetStateID();
+    else
+        // Since std::priority_queue is a max queue, we need to reverse the comparison
+		return lhs->GetFValue() > rhs->GetFValue();
 }
 
 bool IsLesserStateH::operator()(const State& lhs, const State& rhs)

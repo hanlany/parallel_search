@@ -20,6 +20,10 @@ class Planner
         // Lower priority states will be in the front
         typedef smpl::intrusive_heap<State, IsLesserState> StateQueueMinType;
         typedef smpl::intrusive_heap<State, IsLesserStateH> StateQueueHeuristicMinType;
+        typedef std::priority_queue<StatePtrType, std::vector<StatePtrType>, IsLesserStateStd> StdStateQueueMinType;
+        // typedef std::priority_queue<StatePtrType, std::vector<StatePtrType>, IsLesserStateH> StateQueueHeuristicMinType;
+        // typedef boost::heap::binomial_heap<State,
+        //                                    boost::heap::compare<IsLesserStateH>> StateQueueHeuristicMinType;
         typedef std::unordered_map<size_t, EdgePtrType> EdgePtrMapType;
         // Higher priority edge will be in the front
         typedef smpl::intrusive_heap<Edge, IsGreaterEdge> EdgeQueueMaxType;

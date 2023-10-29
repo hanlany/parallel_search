@@ -94,6 +94,12 @@ public:
     bool operator() (const State& lhs, const State& rhs);
 };
 
+class IsLesserStateStd
+{
+public:
+    bool operator() (const State* lhs, const State* rhs);
+};
+
 class IsLesserStateH
 {
 public:
