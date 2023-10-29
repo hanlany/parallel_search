@@ -335,12 +335,12 @@ int main(int argc, char* argv[])
         num_threads = 3;
         if (argc == 3)
         {
-            if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
+            // if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
             batch_size = atoi(argv[2]);
         }
         if (argc == 4)
         {
-            if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
+            // if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
             batch_size = atoi(argv[2]);
             heuristic_weight = atof(argv[3]);
         }
@@ -416,6 +416,7 @@ int main(int argc, char* argv[])
     planner_params["num_threads"] = num_threads;
     planner_params["heuristic_weight"] = heuristic_weight;
     planner_params["heuristic_reduction"] = heuristic_reduction;
+    planner_params["batch_size"] = batch_size;
     if (time_budget)
     {
         planner_params["timeout"] = time_budget;
