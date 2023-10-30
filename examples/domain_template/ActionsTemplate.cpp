@@ -10,10 +10,10 @@ Action(type, params)
 
 ActionSuccessor ActionTemplate::GetSuccessor(const StateVarsType& state_vars, int thread_id)
 {
-
+    return ActionSuccessor();
 }
 
 bool ActionTemplate::CheckPreconditions(const StateVarsType& state)
 {
-
+    return true;
 }
