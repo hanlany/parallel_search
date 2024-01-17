@@ -17,15 +17,6 @@ bool RobotNav2dAction::CheckPreconditions(const StateVarsType& state)
 ActionSuccessor RobotNav2dAction::GetSuccessor(const StateVarsType& state_vars, int thread_id)
 {
     vector<double> next_state_vars(3, 0);
-    if (params_["inflate_evaluation"])
-    {
-        double dummy = 0;
-        for (int i = 0; i < (int)params_["inflate_eval_loops"]; i++)
-        {
-            dummy += floor(pow(0.125, 0.5));
-        }
-        next_state_vars[0] += dummy;
-    }
     for (int i = 0; i < params_["length"]; ++i)
     {
         next_state_vars[0] = state_vars[0] + i*move_dir_[0];
@@ -49,6 +40,17 @@ ActionSuccessor RobotNav2dAction::GetSuccessor(const StateVarsType& state_vars, 
                 return ActionSuccessor(false, {make_pair(StateVarsType(), -DINF)});
         }
 
+    }
+
+    // Inflating cost of collision checking - cache cell validity
+    if (params_["inflate_evaluation"])
+    {
+        double dummy = 0;
+        for (int i = 0; i < (int)params_["inflate_eval_loops"]; i++)
+        {
+            dummy += floor(pow(0.125, 0.5));
+        }
+        next_state_vars[0] += dummy;
     }
     
     double cost = pow(pow((next_state_vars[0] - state_vars[0]), 2) + pow((next_state_vars[1] - state_vars[1]), 2), 0.5);;
@@ -136,7 +138,7 @@ vector<bool> RobotNav2dAction::StateValidateBatch(vector<StateVarsType>& state_v
     if (params_["inflate_evaluation"])
     {
         double dummy = 0;
-        for (int i = 0; i < (int)params_["inflate_eval_loops"]; i++)
+        for (int i = 0; i < 300*(int)params_["inflate_eval_loops"]; i++)
         {
             dummy += floor(pow(0.125, 0.5));
         }
@@ -161,7 +163,7 @@ vector<bool> RobotNav2dAction::StateValidateBatch(vector<StateVarsType>& state_v
         ind++;
     }
     
-    cout << "Num of invalid states in batch: " << invalid_count << endl;
+    // cout << "Num of invalid states in batch: " << invalid_count << endl;
     return is_valid_vec;
 }
 

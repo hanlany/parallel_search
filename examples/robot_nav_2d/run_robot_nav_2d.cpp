@@ -68,7 +68,7 @@ vector<vector<int>> loadMap(const char *fname, cv::Mat& img, int &width, int &he
                 {
                     char c;
                     do {
-                        fscanf(f, "%c", &c);
+                        int count = fscanf(f, "%c", &c);
                     } while (isspace(c));
 
                     map[x][y] = (c == '.' || c == 'G' || c == 'S' || c == 'T') ? 0 : 100;
@@ -202,7 +202,7 @@ void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& actio
     action_params["length"] = 2;
     action_params["footprint_size"] = 1;
     action_params["cache_footprint"] = 1;
-    action_params["inflate_evaluation"] = 0;
+    action_params["inflate_evaluation"] = 1;
     action_params["inflate_eval_loops"] = 2500;
 
     ParamsType expensive_action_params = action_params;
@@ -301,6 +301,7 @@ int main(int argc, char* argv[])
     bool apply_cost_factor_map = false;
     double heuristic_weight = 50;
     double heuristic_reduction = 0.5;
+    bool visualize_batch = false;
 
     if (!strcmp(argv[1], "wastar"))
     {
@@ -333,6 +334,7 @@ int main(int argc, char* argv[])
     else if (!strcmp(argv[1], "bplp"))
     {
         num_threads = 3;
+        visualize_batch = true;
         if (argc == 3)
         {
             // if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
@@ -417,13 +419,14 @@ int main(int argc, char* argv[])
     planner_params["heuristic_weight"] = heuristic_weight;
     planner_params["heuristic_reduction"] = heuristic_reduction;
     planner_params["batch_size"] = batch_size;
+    planner_params["visualize_batch"] = visualize_batch;
     if (time_budget)
     {
         planner_params["timeout"] = time_budget;
     }
     else
     {
-        planner_params["timeout"] = 10;
+        planner_params["timeout"] = 20;
     }
     
     // Read map
@@ -579,6 +582,39 @@ int main(int argc, char* argv[])
             {
                 cv::Mat img2 = img.clone();
                 
+                if (visualize_batch)
+                {
+                    auto planner_stats = planner_ptr->GetStats();
+                    // cout << "Number of Batches: " << planner_stats.num_evaluated_batches << endl;
+                    cout << "Number of Batches evaluated: " << planner_stats.states_eval_.size() << endl;
+                    cout << "Number of Lazy Plan found: " << planner_stats.num_lazy_plans << endl;
+                    cout << "Single Batche evaluation time: " << planner_stats.cumulative_batch_time/planner_stats.num_evaluated_batches << endl;
+                    for (int i = 0; i < planner_stats.num_evaluated_batches; i++)
+                    {
+                        auto state_vars_vec = planner_stats.states_eval_[i];
+                        for (auto state_vars : state_vars_vec)
+                        {
+                            auto c1 = cv::Point(state_vars[0]-action_params["footprint_size"], state_vars[1]+action_params["footprint_size"]);
+                            auto c2 = cv::Point(state_vars[0]+action_params["footprint_size"], state_vars[1]-action_params["footprint_size"]);
+                            cv::rectangle(img2, c1, c2, cv::Scalar(0, 255, 255), -1, 8);
+                        }
+                        auto c1 = cv::Point(starts[exp_idx][0]-action_params["footprint_size"], starts[exp_idx][1]+action_params["footprint_size"]);
+                        auto c2 = cv::Point(starts[exp_idx][0]+action_params["footprint_size"], starts[exp_idx][1]-action_params["footprint_size"]);
+                        cv::rectangle(img2, c1, c2, cv::Scalar(0, 255, 0), -1, 8);
+
+                        c1 = cv::Point(goals[exp_idx][0]-action_params["footprint_size"], goals[exp_idx][1]+action_params["footprint_size"]);
+                        c2 = cv::Point(goals[exp_idx][0]+action_params["footprint_size"], goals[exp_idx][1]-action_params["footprint_size"]);
+                        cv::rectangle(img2, c1, c2, cv::Scalar(0, 0, 255), -1, 8);
+                        cv::resize(img2, img2, cv::Size(2*img.cols/scale, 2*img.rows/scale));
+                        cv::imshow("Plan", img2);
+                        // cv::waitKey(500);
+                        cv::waitKey(0);
+                        img2.setTo(cv::Scalar(0,0,0));
+                        img2 = img.clone();
+                        // cv::resize(img2, img2, cv::Size(img.cols/(4*scale), img.rows/(4*scale)));
+                    }
+                }
+                
                 // Display map with start and goal
                 for (auto& plan_element: planner_ptr->GetPlan())
                 {
@@ -595,7 +631,7 @@ int main(int argc, char* argv[])
                 c2 = cv::Point(goals[exp_idx][0]+action_params["footprint_size"], goals[exp_idx][1]-action_params["footprint_size"]);
                 cv::rectangle(img2, c1, c2, cv::Scalar(0, 0, 255), -1, 8);
 
-                cv::resize(img2, img2, cv::Size(4*img.cols/scale, 4*img.rows/scale));
+                cv::resize(img2, img2, cv::Size(2*img.cols/scale, 2*img.rows/scale));
                 cv::imshow("Plan", img2);
                 cv::waitKey(500);
                 // cv::waitKey(0);

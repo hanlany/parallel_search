@@ -13,6 +13,9 @@ class BatchPlanner : public Planner
         BatchPlanner(ParamsType planner_params);
         ~BatchPlanner();
         bool Plan();
+        
+        // Statistics
+        // std::vector<std::vector<StateVarsType>> GetStatesBatches() const {return states_batches_;};
 
     protected:
         void initialize();
@@ -36,6 +39,9 @@ class BatchPlanner : public Planner
         std::atomic<bool> terminate_;
         std::atomic<bool> plan_found_;
 
+        // Statistics
+        bool visualize_batch_;
+        // std::vector<std::vector<StateVarsType>> states_batches_;
 };
 
 }

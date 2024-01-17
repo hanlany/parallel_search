@@ -7,6 +7,7 @@
 #include <mutex>
 #include "intrusive_heap.h"
 #include <queue>
+#include <unordered_set>
 
 namespace ps
 {
@@ -52,13 +53,27 @@ namespace ps
         int num_state_expansions = 0;
         int num_evaluated_edges = 0;
         int num_threads_spawned = 0;
-        
+        int num_evaluated_batches = 0;
+        int num_lazy_plans = 0;
         std::vector<int> num_jobs_per_thread;
         
 	    double lock_time = 0;
         double cumulative_expansions_time = 0;
+        double cumulative_batch_time = 0;
 
         std::unordered_map<std::string, std::vector<double>> action_eval_times;
+        std::vector<std::vector<StateVarsType>> states_eval_ = std::vector<std::vector<StateVarsType>>();
+    };
+    
+    // Hash function for double pair
+    struct DoublePairHash {
+        std::size_t operator() (const std::pair<double, double> &pair) const {
+                // Compute hash values
+                std::size_t res = 17;
+                res = res * 31 + std::hash<double>()(pair.first);
+                res = res * 31 + std::hash<double>()(pair.second);
+                return res;
+        }
     };
 }
 

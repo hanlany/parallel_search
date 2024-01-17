@@ -5,11 +5,14 @@
 using namespace std;
 using namespace ps;
 
+#define UPDATE_BATCH_Q 0
+
 BatchPlanner::BatchPlanner(ParamsType planner_params):
 Planner(planner_params)
 {    
     num_threads_  = planner_params["num_threads"];
     batch_size_ = planner_params["batch_size"];
+    visualize_batch_ = planner_params["visualize_batch"];
 }
 
 BatchPlanner::~BatchPlanner()
@@ -40,6 +43,7 @@ bool BatchPlanner::Plan()
             // Hit goal region
             if (isGoalState(state_ptr))
             {
+                planner_stats_.num_lazy_plans++;
                 constructPlan(state_ptr);
                 if (plan_found_)
                 {
@@ -85,6 +89,9 @@ void BatchPlanner::initialize()
     plan_found_ = false;
 
     state_open_list_.push(start_state_ptr_);
+    
+    // Stats
+    // states_batches_.clear();
 }
 
 void BatchPlanner::initializeReplanning()
@@ -295,17 +302,31 @@ void BatchPlanner::batchProcess()
         }
         lock_.unlock();
         
+        
         if (states_to_validate_ptr.size() == 0)
         {
             // Out of states to validate
             continue;
         }
+
+        if (visualize_batch_)
+        {
+            planner_stats_.states_eval_.push_back(states_to_validate_var);
+        }
         
+        planner_stats_.num_evaluated_batches++;    
+
+
+        auto t_start = chrono::steady_clock::now();
         // Batch validate states
         auto any_action_ptr = actions_ptrs_[0];
         vector<bool> state_validity(states_to_validate_ptr.size(), false);
         state_validity = any_action_ptr->StateValidateBatch(states_to_validate_var, 0);
+        auto t_end = chrono::steady_clock::now();
         
+        double t_elapsed = chrono::duration_cast<chrono::nanoseconds>(t_end-t_start).count();            
+        planner_stats_.cumulative_batch_time += 1e-9*t_elapsed;
+
         lock_.lock();
         for (int i = 0; i < states_to_validate_ptr.size(); i++)
         {
@@ -372,7 +393,7 @@ void BatchPlanner::constructPlan(StatePtrType goal_state_ptr)
         if (!state_ptr->IsEvaluated())
         {
             plan_valid = false;
-            if (!state_ptr->IsBeingExpanded())
+            if (batch_select_list_.contains(state_ptr))
             {
                 state_ptr->SetBValue(-1);
                 batch_select_list_.decrease(state_ptr);

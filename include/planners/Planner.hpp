@@ -34,6 +34,7 @@ class Planner
         virtual ~Planner();
         
         virtual bool Plan() = 0;
+        // virtual std::vector<std::vector<StateVarsType>> GetStatesBatches() const = 0;
         std::vector<PlanElement> GetPlan() const;
         PlannerStats GetStats() const;
 

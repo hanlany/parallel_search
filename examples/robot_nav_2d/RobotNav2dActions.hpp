@@ -30,6 +30,7 @@ protected:
     std::vector<std::vector<int>> map_;
     std::vector<std::vector<double>> cost_factor_map_;
     std::vector<std::pair<int, int>> footprint_;
+    std::unordered_set<std::pair<double, double>, DoublePairHash> state_validity_set_;
     LockType lock_;
 };
 
