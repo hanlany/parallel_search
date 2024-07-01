@@ -5,7 +5,7 @@
 using namespace std;
 using namespace ps;
 
-#define UPDATE_BATCH_Q 0
+#define UPDATE_BATCH_Q 1
 
 BatchPlanner::BatchPlanner(ParamsType planner_params):
 Planner(planner_params)
@@ -65,6 +65,31 @@ bool BatchPlanner::Plan()
             }
             
             expandState(state_ptr);
+            if(UPDATE_BATCH_Q)
+            {
+                if (std::find(verified_search_tree_.begin(), verified_search_tree_.end(), state_ptr) == verified_search_tree_.end())
+                {
+                    if (!state_ptr->GetIncomingEdgePtr())
+                    {
+                        // Start State
+                        state_ptr->SetVerified();
+                        verified_search_tree_.push_back(state_ptr);
+                    }
+                    else
+                    {
+                        // Check if parent is verified
+                        if (state_ptr->GetIncomingEdgePtr()->parent_state_ptr_->IsVerified())
+                        {
+                            // Check if state is valid and evaluated
+                            if (state_ptr->IsValid() && state_ptr->IsEvaluated())
+                            {
+                                state_ptr->SetVerified();
+                                verified_search_tree_.push_back(state_ptr);
+                            }
+                        }
+                    }
+                }
+            }
             state_ptr->SetVisited();
         }
     }
@@ -89,6 +114,8 @@ void BatchPlanner::initialize()
     plan_found_ = false;
 
     state_open_list_.push(start_state_ptr_);
+    
+    verified_search_tree_.clear();
     
     // Stats
     // states_batches_.clear();
@@ -314,6 +341,7 @@ void BatchPlanner::batchProcess()
             planner_stats_.states_eval_.push_back(states_to_validate_var);
         }
         
+        planner_stats_.num_evaluated_edges += states_to_validate_ptr.size();
         planner_stats_.num_evaluated_batches++;    
 
 
@@ -335,6 +363,32 @@ void BatchPlanner::batchProcess()
             if (!state_validity[i])
                 states_to_validate_ptr[i]->UnsetValid();
         }
+        cout << "(before update) Batch Select List Size: " << batch_select_list_.size() << endl;
+        if (UPDATE_BATCH_Q)
+        {
+            for (auto& state_ptr : batch_select_list_)
+            {
+                double min_h_val = DINF;
+                StatePtrType nearest_state_ptr = NULL;
+                for (auto& s : verified_search_tree_)
+                {
+                    if (computeHeuristic(state_ptr, s) < min_h_val)
+                    {
+                        min_h_val = computeHeuristic(state_ptr, s);
+                        nearest_state_ptr = s;
+                    }
+                }
+                double new_b_val = nearest_state_ptr->GetGValue() + computeHeuristic(nearest_state_ptr, state_ptr) + computeHeuristic(state_ptr);
+                if (new_b_val > state_ptr->GetBValue())
+                {
+                    state_ptr->SetBValue(new_b_val);
+                    batch_select_list_.increase(state_ptr);
+                }
+                // state_ptr->SetBValue(nearest_state_ptr->GetGValue() + computeHeuristic(nearest_state_ptr, state_ptr) + computeHeuristic(state_ptr));
+                // batch_select_list_.increase(state_ptr);
+            }
+        }
+        cout << "(after update) Batch Select List Size: " << batch_select_list_.size() << endl;
         lock_.unlock();
     }
 }

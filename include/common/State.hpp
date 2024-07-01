@@ -60,6 +60,10 @@ public:
 	void UnsetValid() {is_valid_ = false;};
 	bool IsValid() {return is_valid_;};
 
+	void SetVerified() {is_verified_ = true;};
+	void UnsetVerified() {is_verified_ = false;};
+	bool IsVerified() {return is_verified_;};
+
     void SetIncomingEdgePtr(EdgePtrType edge_ptr) {incoming_edge_ptr_ = edge_ptr;};
     EdgePtrType GetIncomingEdgePtr() {return incoming_edge_ptr_;};
     void ResetIncomingEdgePtr() {incoming_edge_ptr_ = NULL;};
@@ -84,6 +88,7 @@ private:
 	std::atomic<bool> is_visited_;
 	std::atomic<bool> is_valid_;
 	std::atomic<bool> is_eval_;
+	std::atomic<bool> is_verified_;
     std::atomic<bool> being_expanded_;
     EdgePtrType incoming_edge_ptr_;
 };

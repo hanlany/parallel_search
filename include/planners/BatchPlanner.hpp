@@ -42,6 +42,10 @@ class BatchPlanner : public Planner
         // Statistics
         bool visualize_batch_;
         // std::vector<std::vector<StateVarsType>> states_batches_;
+        
+        // For update batch 
+        std::vector<StatePtrType> verified_search_tree_;
+        
 };
 
 }

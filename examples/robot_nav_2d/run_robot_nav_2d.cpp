@@ -335,6 +335,7 @@ int main(int argc, char* argv[])
     {
         num_threads = 3;
         visualize_batch = true;
+        // visualize_batch = false;
         if (argc == 3)
         {
             // if (atoi(argv[2]) < 4) throw runtime_error("bplp requires a minimum of 4 threads");
@@ -560,6 +561,7 @@ int main(int argc, char* argv[])
                 << " | Cost: " << planner_stats.path_cost 
                 << " | Length: " << planner_stats.path_length
                 << " | State expansions: " << planner_stats.num_state_expansions
+                << " | Edges evaluated: " << planner_stats.num_evaluated_edges
                 << " | Threads used: " << planner_stats.num_threads_spawned << "/" << planner_params["num_threads"]
                 << " | Lock time: " <<  planner_stats.lock_time
                 << " | Expand time: " << planner_stats.cumulative_expansions_time
