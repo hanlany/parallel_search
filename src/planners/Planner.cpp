@@ -61,6 +61,11 @@ void Planner::SetExplicitGraph(std::function<vector<StateVarsType>(const StateVa
     explicit_graph_generator_ = callback;
 }
 
+void Planner::SetDijkstraHeuristicGenerator(std::function<void(std::vector<std::vector<double>>&)> callback)
+{
+    dijkstra_heuristic_generator_ = callback;
+}
+
 std::vector<PlanElement> Planner::GetPlan() const
 {
     return plan_;

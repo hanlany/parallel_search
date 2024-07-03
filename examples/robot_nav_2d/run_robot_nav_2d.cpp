@@ -124,6 +124,68 @@ double computeHeuristicStateToState(const StateVarsType& state_vars_1, const Sta
     return dist;
 }
 
+void computeDijkstraHeuristic(vector<vector<double>>& heuristic_table, vector<shared_ptr<Action>>& action_ptrs)
+{
+    // Dijkstra heuristic
+    // Resize the heuristic table
+    vector<double> map_size = action_ptrs[0]->GetDomainKnowledge();
+    heuristic_table.resize(map_size[0], vector<double>(map_size[1], DINF));
+    // Data Structures
+    priority_queue<pair<double, pair<int, int>>, vector<pair<double, pair<int, int>>>, greater<pair<double, pair<int, int>>>> pq;
+    vector<vector<bool>> visited(map_size[0], vector<bool>(map_size[1], false));
+    // Initialize the priority queue
+    pq.push(make_pair(0, make_pair(goal[0], goal[1])));
+    
+    // Max cost
+    double max_cost = 0;
+
+    while (!pq.empty())
+    {
+        auto top = pq.top();
+        pq.pop();
+        int x = top.second.first;
+        int y = top.second.second;
+        double cost = top.first;
+
+        if (visited[x][y])
+            continue;
+
+        visited[x][y] = true;
+        heuristic_table[x][y] = cost;
+        max_cost = cost;
+        
+        // cout << "x: " << x << " y: " << y << " cost: " << cost << endl;
+
+        for (auto& action_ptr : action_ptrs)
+        {
+            auto succ = action_ptr->GetSuccessor({static_cast<double>(x), static_cast<double>(y), 0}, 0);
+            if (succ.success_)
+            {
+                auto succ_state = succ.successor_state_vars_costs_[0].first;
+                int succ_x = static_cast<int>(succ_state[0]);
+                int succ_y = static_cast<int>(succ_state[1]);
+                double succ_cost = succ.successor_state_vars_costs_[0].second;
+                if (!visited[succ_x][succ_y])
+                {
+                    pq.push(make_pair(cost + succ_cost, make_pair(succ_x, succ_y)));
+                }
+            }
+        }
+    }
+    // cv::Mat img(map_size[1], map_size[0], CV_8UC3);
+    // for (int y = 0; y < map_size[1]; y++)
+    // {
+    //     for (int x = 0; x < map_size[0]; x++)
+    //     {
+    //         img.at<cv::Vec3b>(y,x) = (heuristic_table[x][y] < DINF) ? cv::Vec3b(255,255,0)*heuristic_table[x][y]/max_cost : cv::Vec3b(0,0,0) ;
+    //     }
+    // }
+    //
+    // cv::imshow("Dijkstra Heuristic", img);
+    // cv::waitKey(0);
+}
+
+
 bool isGoalState(const StateVarsType& state_vars, double dist_thresh)
 {
     return (computeHeuristic(state_vars, dist_thresh) <= 0);
@@ -202,7 +264,7 @@ void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& actio
     action_params["length"] = 2;
     action_params["footprint_size"] = 1;
     action_params["cache_footprint"] = 1;
-    action_params["inflate_evaluation"] = 1;
+    action_params["inflate_evaluation"] = 0;
     action_params["inflate_eval_loops"] = 2500;
 
     ParamsType expensive_action_params = action_params;
@@ -264,6 +326,7 @@ void constructPlanner(string planner_name, shared_ptr<Planner>& planner_ptr, vec
     planner_ptr->SetStateToStateHeuristicGenerator(bind(computeHeuristicStateToState, placeholders::_1, placeholders::_2));
     planner_ptr->SetGoalChecker(bind(isGoalState, placeholders::_1, action_params["length"]));
     planner_ptr->SetExplicitGraph(bind(getExplicitGraph, placeholders::_1, action_ptrs));
+    planner_ptr->SetDijkstraHeuristicGenerator(bind(computeDijkstraHeuristic, placeholders::_1, action_ptrs));
 }
 
 void loadStartsGoalsFromFile(vector<vector<double>>& starts, vector<vector<double>>& goals, int scale, int num_runs, const string& path)
