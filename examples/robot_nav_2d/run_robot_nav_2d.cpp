@@ -15,6 +15,7 @@
 #include <planners/EpasePlanner.hpp>
 #include <planners/GepasePlanner.hpp>
 #include <planners/AgepasePlanner.hpp>
+#include <planners/QepasePlanner.hpp>
 #include <planners/MplpPlanner.hpp>
 #include <planners/BatchPlanner.hpp>
 
@@ -312,6 +313,8 @@ void constructPlanner(string planner_name, shared_ptr<Planner>& planner_ptr, vec
         planner_ptr = make_shared<GepasePlanner>(planner_params); 
     else if (planner_name == "agepase")
         planner_ptr = make_shared<AgepasePlanner>(planner_params);
+    else if (planner_name == "qepase")
+        planner_ptr = make_shared<QepasePlanner>(planner_params);
     else if (planner_name == "mplp")
         planner_ptr = make_shared<MplpPlanner>(planner_params); 
     else if (planner_name == "bplp")
@@ -332,7 +335,7 @@ void constructPlanner(string planner_name, shared_ptr<Planner>& planner_ptr, vec
 void loadStartsGoalsFromFile(vector<vector<double>>& starts, vector<vector<double>>& goals, int scale, int num_runs, const string& path)
 {
     ifstream starts_fin(path + "nav2d_starts.txt");
-    ifstream goals_fin(path + "nav2d_goals.txt");    
+    ifstream goals_fin(path + "nav2d_goals.txt");
    
     for (int j = 0; j < num_runs; ++j)
     {
@@ -460,6 +463,20 @@ int main(int argc, char* argv[])
         }
         else
             throw runtime_error("Format: run_robot_nav_2d epase [num_threads] [heuristic_weight]");
+    }
+    else if (!strcmp(argv[1], "qepase"))
+    {
+        if (argc == 3)
+        {
+            num_threads = atoi(argv[2]);
+        }
+        else if (argc == 4)
+        {
+            num_threads = atoi(argv[2]);
+            heuristic_weight = atof(argv[3]);
+        }
+        else
+            throw runtime_error("Format: run_robot_nav_2d qepase [num_threads] [heuristic_weight]");
     }
     else
     {

@@ -32,6 +32,7 @@ set(SOURCES
     src/planners/EpasePlanner.cpp
     src/planners/GepasePlanner.cpp
     src/planners/AgepasePlanner.cpp
+    src/planners/QepasePlanner.cpp
     src/planners/MplpPlanner.cpp
     src/planners/BatchPlanner.cpp
 )
