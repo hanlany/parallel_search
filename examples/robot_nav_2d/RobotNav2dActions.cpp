@@ -17,7 +17,7 @@ bool RobotNav2dAction::CheckPreconditions(const StateVarsType& state)
 ActionSuccessor RobotNav2dAction::GetSuccessor(const StateVarsType& state_vars, int thread_id)
 {
     vector<double> next_state_vars(3, 0);
-    for (int i = 0; i < params_["length"]; ++i)
+    for (int i = 1; i < params_["length"]; ++i)
     {
         next_state_vars[0] = state_vars[0] + i*move_dir_[0];
         next_state_vars[1] = state_vars[1] + i*move_dir_[1];
@@ -88,7 +88,7 @@ ActionSuccessor RobotNav2dAction::GetSuccessorLazy(const StateVarsType& state_va
             return ActionSuccessor(false, {make_pair(StateVarsType(), -DINF)});
     }
     
-    double cost = pow(pow((final_state_vars[0] - state_vars[0]), 2) + pow((final_state_vars[1] - state_vars[1]), 2), 0.5);;
+    double cost = pow(pow((final_state_vars[0] - state_vars[0]), 2) + pow((final_state_vars[1] - state_vars[1]), 2), 0.5);
     
     if (!cost_factor_map_.empty())
     {
@@ -179,6 +179,11 @@ vector<StateVarsType> RobotNav2dAction::GetExplicitGraph(const StateVarsType& ro
         }
     }
     return explicit_graph;
+}
+
+vector<double> RobotNav2dAction::GetDomainKnowledge()
+{
+    return vector<double>{static_cast<double>(map_.size()),static_cast<double>(map_[0].size())};
 }
 
 bool RobotNav2dAction::isValidCell(int x, int y)
