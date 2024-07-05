@@ -16,11 +16,15 @@ class EpasePlanner : public GepasePlanner
         bool Plan();
 
     protected:
-        void expandEdgeLoop(int thread_id);    
+        void initialize();
+        void expandEdgeLoop(int thread_id);
         void expandEdge(EdgePtrType edge_ptr, int thread_id);
         void exit();
 
         std::vector<StatePtrType> being_expanded_states_;    
+        
+        // [TMP] Heuristic Table for Dijkstra
+        std::vector<std::vector<double>> heuristic_table_;
 };
 
 }

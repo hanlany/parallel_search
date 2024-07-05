@@ -56,6 +56,15 @@ void WastarPlanner::initialize()
     // Initialize open list
     start_state_ptr_->SetFValue(start_state_ptr_->GetGValue() + heuristic_w_*start_state_ptr_->GetHValue());
     state_open_list_.push(start_state_ptr_);
+    
+    // Compute Dijsktra Heuristic
+    if (planner_params_["dijkstra_heuristic"])
+    {
+        dijkstra_heuristic_generator_(heuristic_table_);
+        start_state_ptr_->SetHValue(heuristic_table_[start_state_ptr_->GetStateVars()[0]][start_state_ptr_->GetStateVars()[1]]);
+        start_state_ptr_->SetFValue(start_state_ptr_->GetGValue() + heuristic_w_*start_state_ptr_->GetHValue());
+    }
+
 
     planner_stats_.num_threads_spawned = 1;
 }
@@ -105,6 +114,10 @@ void WastarPlanner::updateState(StatePtrType& state_ptr, ActionPtrType& action_p
                 if (h_val == -1)
                 {
                     h_val = computeHeuristic(successor_state_ptr);
+                    if (planner_params_["dijkstra_heuristic"])
+                    {
+                        h_val = heuristic_table_[successor_state_ptr->GetStateVars()[0]][successor_state_ptr->GetStateVars()[1]];
+                    }
                     successor_state_ptr->SetHValue(h_val);        
                 }
 

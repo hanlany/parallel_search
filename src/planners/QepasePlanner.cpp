@@ -296,8 +296,12 @@ void QepasePlanner::expandEdge(EdgePtrType edge_ptr, int thread_id)
                     
                     if (h_val == -1)
                     {
-                        // h_val = computeHeuristic(successor_state_ptr);
-                        h_val = heuristic_w_*heuristic_table_[successor_state_ptr->GetStateVars()[0]][successor_state_ptr->GetStateVars()[1]];
+                        h_val = computeHeuristic(successor_state_ptr);
+                        
+                        if (planner_params_["dijkstra_heuristic"])
+                        {
+                            h_val = heuristic_table_[successor_state_ptr->GetStateVars()[0]][successor_state_ptr->GetStateVars()[1]];
+                        }
                         successor_state_ptr->SetHValue(h_val);        
                     }
 
@@ -383,14 +387,16 @@ void QepasePlanner::initialize()
     // cout << "Size of heuristic table: " << heuristic_table_.size() << " x " << heuristic_table_[0].size() << endl;
     // cout << "Random heuristic value: " << heuristic_table_[191][3] << endl;
 
-    
-    computeDijkstra();
     GepasePlanner::initialize();
 
+    if (planner_params_["dijkstra_heuristic"])
+    {
+        computeDijkstra();
     auto start_edge_ptr = edge_open_list_.min();
     start_edge_ptr->expansion_priority_ = heuristic_table_[start_state_ptr_->GetStateVars()[0]][start_state_ptr_->GetStateVars()[1]];
     start_state_ptr_->SetHValue(start_edge_ptr->expansion_priority_);
     start_state_ptr_->SetFValue(start_edge_ptr->expansion_priority_);
+    }
 
     being_expanded_states_.clear();
 }
@@ -398,6 +404,6 @@ void QepasePlanner::initialize()
 void QepasePlanner::exit()
 {
     being_expanded_states_.clear();
-    heuristic_table_.clear();
+    // heuristic_table_.clear();
     GepasePlanner::exit();
 }

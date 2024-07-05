@@ -22,6 +22,10 @@ class WastarPlanner : public Planner
 
         int num_threads_;
         StateQueueMinType state_open_list_;
+        
+        // [TMP] Heuristic Table for Dijkstra
+        std::vector<std::vector<double>> heuristic_table_;
+
 
 };
 

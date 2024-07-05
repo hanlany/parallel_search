@@ -292,6 +292,10 @@ void EpasePlanner::expandEdge(EdgePtrType edge_ptr, int thread_id)
                     if (h_val == -1)
                     {
                         h_val = computeHeuristic(successor_state_ptr);
+                        if (planner_params_["dijkstra_heuristic"])
+                        {
+                            h_val = heuristic_table_[successor_state_ptr->GetStateVars()[0]][successor_state_ptr->GetStateVars()[1]];
+                        }
                         successor_state_ptr->SetHValue(h_val);        
                     }
 
@@ -367,6 +371,21 @@ void EpasePlanner::expandEdge(EdgePtrType edge_ptr, int thread_id)
     lock_.unlock();
 }
 
+void EpasePlanner::initialize()
+{
+    GepasePlanner::initialize();
+
+    if (planner_params_["dijkstra_heuristic"])
+    {
+        dijkstra_heuristic_generator_(heuristic_table_);
+        auto start_edge_ptr = edge_open_list_.min();
+        start_edge_ptr->expansion_priority_ = heuristic_table_[start_state_ptr_->GetStateVars()[0]][start_state_ptr_->GetStateVars()[1]];
+        start_state_ptr_->SetHValue(start_edge_ptr->expansion_priority_);
+        start_state_ptr_->SetFValue(start_edge_ptr->expansion_priority_);
+    }
+
+    being_expanded_states_.clear();
+}
 
 void EpasePlanner::exit()
 {

@@ -492,6 +492,7 @@ int main(int argc, char* argv[])
     // vector<int> scale_vec = {5, 5, 5, 10, 5};
     bool visualize_plan = true;
     bool load_starts_goals_from_file = true;
+    bool dijkstra_heuristic = false;
 
     // Define planner parameters
     ParamsType planner_params;
@@ -501,6 +502,7 @@ int main(int argc, char* argv[])
     planner_params["heuristic_reduction"] = heuristic_reduction;
     planner_params["batch_size"] = batch_size;
     planner_params["visualize_batch"] = visualize_batch;
+    planner_params["dijkstra_heuristic"] = dijkstra_heuristic;
     if (time_budget)
     {
         planner_params["timeout"] = time_budget;
