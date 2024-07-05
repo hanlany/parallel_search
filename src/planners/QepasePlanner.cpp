@@ -241,15 +241,43 @@ void QepasePlanner::expandEdge(EdgePtrType edge_ptr, int thread_id)
         {
             if (action_ptr->CheckPreconditions(state_ptr->GetStateVars()))
             {
+                // Mimicing Nueral Network Inference
+                auto succ = action_ptr->GetSuccessorLazy(state_ptr->GetStateVars(), thread_id);
+                state_ptr->num_successors_+=1;
+                
+
+                if (!succ.success_) {
+                    if (VERBOSE){
+                        cout << "No successors for action" << endl;
+                        // cin.get();
+                    }
+                    // Technically, this should be done when an edge is evaluated.
+                    state_ptr->num_expanded_successors_+=1;
+                    continue;
+                }
+
                 auto edge_ptr_real = new Edge(state_ptr, action_ptr);
                 edge_map_.insert(make_pair(getEdgeKey(edge_ptr_real), edge_ptr_real));
 
-                // edge_ptr_real->exp_priority_ = state_ptr->GetGValue() + heuristic_w_*state_ptr->GetHValue();
-                edge_ptr_real->expansion_priority_ = edge_ptr->expansion_priority_;
 
-                if (VERBOSE) cout << "Pushing successor with g_val: " << state_ptr->GetGValue() << " | h_val: " << state_ptr->GetHValue() << endl;
-               
-                state_ptr->num_successors_+=1;
+                double h_val = 0;
+                if (planner_params_["dijkstra_heuristic"])
+                {
+                    // Set the heuristic value of the state
+                    h_val = heuristic_table_[succ.successor_state_vars_costs_.back().first[0]][succ.successor_state_vars_costs_.back().first[1]];
+                }
+                else
+                {
+                    h_val = computeHeuristic(constructState(succ.successor_state_vars_costs_.back().first));
+                }
+
+                double q_val = state_ptr->GetGValue()
+                    + succ.successor_state_vars_costs_.back().second
+                    + heuristic_w_*h_val;
+
+                edge_ptr_real->expansion_priority_ = q_val;
+
+                if (VERBOSE) cout << "Pushing edge with q_val: " << q_val << " | old edge priority: " << edge_ptr->expansion_priority_ << endl;
                 edge_open_list_.push(edge_ptr_real);
                 notifyMainThread();
             }
