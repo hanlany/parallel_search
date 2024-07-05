@@ -72,7 +72,7 @@ bool QepasePlanner::Plan()
                     }
                 }
      
-                if (curr_edge_ptr)
+                if (curr_edge_ptr && INDEPENDENT_CHECK)
                 {
                     // Independence check of curr_edge with edges in OPEN that are in front of curr_edge
                     for (auto& popped_edge_ptr : popped_edges)
@@ -82,6 +82,7 @@ bool QepasePlanner::Plan()
                             auto h_diff = computeHeuristic(popped_edge_ptr->parent_state_ptr_, curr_edge_ptr->parent_state_ptr_);
                             if (curr_edge_ptr->parent_state_ptr_->GetGValue() > popped_edge_ptr->parent_state_ptr_->GetGValue() + heuristic_w_*h_diff)
                             {
+                                if (VERBOSE) cout << "Independence check failed" << endl;
                                 curr_edge_ptr = NULL;
                                 break;
                             }                        
