@@ -5,16 +5,16 @@
 #include <condition_variable>
 #include <planners/GepasePlanner.hpp>
 
-#define INDEPENDENT_CHECK 1
+#define INDEPENDENT_CHECK 0
 
 namespace ps
 {
 
-class QepasePlanner : public GepasePlanner
+class QpasePlanner : public GepasePlanner
 {
     public:
-        QepasePlanner(ParamsType planner_params);
-        ~QepasePlanner();
+        QpasePlanner(ParamsType planner_params);
+        ~QpasePlanner();
         bool Plan();
 
     protected:

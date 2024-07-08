@@ -15,7 +15,7 @@
 #include <planners/EpasePlanner.hpp>
 #include <planners/GepasePlanner.hpp>
 #include <planners/AgepasePlanner.hpp>
-#include <planners/QepasePlanner.hpp>
+#include <planners/QpasePlanner.hpp>
 #include <planners/MplpPlanner.hpp>
 #include <planners/BatchPlanner.hpp>
 
@@ -313,8 +313,8 @@ void constructPlanner(string planner_name, shared_ptr<Planner>& planner_ptr, vec
         planner_ptr = make_shared<GepasePlanner>(planner_params); 
     else if (planner_name == "agepase")
         planner_ptr = make_shared<AgepasePlanner>(planner_params);
-    else if (planner_name == "qepase")
-        planner_ptr = make_shared<QepasePlanner>(planner_params);
+    else if (planner_name == "qpase")
+        planner_ptr = make_shared<QpasePlanner>(planner_params);
     else if (planner_name == "mplp")
         planner_ptr = make_shared<MplpPlanner>(planner_params); 
     else if (planner_name == "bplp")
@@ -464,7 +464,7 @@ int main(int argc, char* argv[])
         else
             throw runtime_error("Format: run_robot_nav_2d epase [num_threads] [heuristic_weight]");
     }
-    else if (!strcmp(argv[1], "qepase"))
+    else if (!strcmp(argv[1], "qpase"))
     {
         if (argc == 3)
         {
@@ -476,7 +476,7 @@ int main(int argc, char* argv[])
             heuristic_weight = atof(argv[3]);
         }
         else
-            throw runtime_error("Format: run_robot_nav_2d qepase [num_threads] [heuristic_weight]");
+            throw runtime_error("Format: run_robot_nav_2d qpase [num_threads] [heuristic_weight]");
     }
     else
     {
@@ -549,7 +549,7 @@ int main(int argc, char* argv[])
     };
 
     vector<double> all_maps_time_vec, all_maps_cost_vec;
-    vector<int> all_maps_num_states_vec, all_maps_num_edges_vec;
+    vector<int> all_maps_path_length_vec, all_maps_num_states_vec, all_maps_num_edges_vec;
     unordered_map<string, vector<double>> all_action_eval_times;
 
     // for (int m_idx = 0; m_idx < map_vec.size(); ++m_idx)
@@ -584,7 +584,7 @@ int main(int argc, char* argv[])
         // Run experiments
         int start_goal_idx = 0;
         vector<double> time_vec, cost_vec;
-        vector<int> num_states_vec, num_edges_vec, threads_used_vec;
+        vector<int> path_length_vec, num_states_vec, num_edges_vec, threads_used_vec;
         vector<int> jobs_per_thread(planner_params["num_threads"], 0);
         unordered_map<string, vector<double>> action_eval_times;
 
@@ -629,6 +629,8 @@ int main(int argc, char* argv[])
                 all_maps_time_vec.emplace_back(planner_stats.total_time);
                 cost_vec.emplace_back(planner_stats.path_cost);
                 all_maps_cost_vec.emplace_back(planner_stats.path_cost);
+                path_length_vec.emplace_back(planner_stats.path_length);
+                all_maps_path_length_vec.emplace_back(planner_stats.path_length);
                 num_states_vec.emplace_back(planner_stats.num_state_expansions);
                 all_maps_num_states_vec.emplace_back(planner_stats.num_state_expansions);
                 num_edges_vec.emplace_back(planner_stats.num_evaluated_edges);
@@ -733,6 +735,7 @@ int main(int argc, char* argv[])
         cout << "Mean time: " << accumulate(time_vec.begin(), time_vec.end(), 0.0)/time_vec.size() << endl;
         cout << "Mean cost: " << accumulate(cost_vec.begin(), cost_vec.end(), 0.0)/cost_vec.size() << endl;    
         cout << "Mean threads used: " << accumulate(threads_used_vec.begin(), threads_used_vec.end(), 0.0)/threads_used_vec.size() << "/" << planner_params["num_threads"] << endl;
+        cout << "Mean path length: " << accumulate(path_length_vec.begin(), path_length_vec.end(), 0.0)/path_length_vec.size() << endl;
         cout << "Mean expanded states: " << roundOff(accumulate(num_states_vec.begin(), num_states_vec.end(), 0.0)/double(num_states_vec.size()), 2) << endl;
         cout << "Mean evaluated edges: " << roundOff(accumulate(num_edges_vec.begin(), num_edges_vec.end(), 0.0)/double(num_edges_vec.size()), 2) << endl;
         cout << endl << "------------- Mean jobs per thread -------------" << endl;
@@ -756,6 +759,7 @@ int main(int argc, char* argv[])
     cout << endl << "************ Global Stats ************" << endl;
     cout << "Mean time: " << accumulate(all_maps_time_vec.begin(), all_maps_time_vec.end(), 0.0)/all_maps_time_vec.size() << endl;
     cout << "Mean cost: " << accumulate(all_maps_cost_vec.begin(), all_maps_cost_vec.end(), 0.0)/all_maps_cost_vec.size() << endl;    
+    cout << "Mean path length: " << accumulate(all_maps_path_length_vec.begin(), all_maps_path_length_vec.end(), 0.0)/all_maps_path_length_vec.size() << endl;
     cout << "Mean expanded states: " << roundOff(accumulate(all_maps_num_states_vec.begin(), all_maps_num_states_vec.end(), 0.0)/double(all_maps_num_states_vec.size()), 2) << endl;
     cout << "Mean evaluated edges: " << roundOff(accumulate(all_maps_num_edges_vec.begin(), all_maps_num_edges_vec.end(), 0.0)/double(all_maps_num_edges_vec.size()), 2) << endl;
     cout << endl << "************************" << endl;

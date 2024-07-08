@@ -1,27 +1,27 @@
 #include <iostream>
 #include <algorithm>
-#include <planners/QepasePlanner.hpp>
+#include <planners/QpasePlanner.hpp>
 
 using namespace std;
 using namespace ps;
 
-QepasePlanner::QepasePlanner(ParamsType planner_params):
+QpasePlanner::QpasePlanner(ParamsType planner_params):
 GepasePlanner(planner_params)
 {    
 
 }
 
-QepasePlanner::~QepasePlanner()
+QpasePlanner::~QpasePlanner()
 {
     
 }
 
-void QepasePlanner::computeDijkstra()
+void QpasePlanner::computeDijkstra()
 {
     dijkstra_heuristic_generator_(heuristic_table_);
 }
 
-bool QepasePlanner::Plan()
+bool QpasePlanner::Plan()
 {
     
     initialize();    
@@ -58,34 +58,38 @@ bool QepasePlanner::Plan()
                 if (curr_edge_ptr->parent_state_ptr_->IsBeingExpanded())
                     break;
 
-                // Independence check of curr_edge with edges in BE
-                for (auto& being_expanded_state : being_expanded_states_)
+                if (INDEPENDENT_CHECK) 
                 {
-                    if (being_expanded_state != curr_edge_ptr->parent_state_ptr_)
+                    // Independence check of curr_edge with edges in BE
+                    for (auto& being_expanded_state : being_expanded_states_)
                     {
-                        auto h_diff = computeHeuristic(being_expanded_state, curr_edge_ptr->parent_state_ptr_);
-                        if (curr_edge_ptr->parent_state_ptr_->GetGValue() > being_expanded_state->GetGValue() + heuristic_w_*h_diff)
+                        if (being_expanded_state != curr_edge_ptr->parent_state_ptr_)
                         {
-                            curr_edge_ptr = NULL;
-                            break;
-                        }
-                    }
-                }
-     
-                if (curr_edge_ptr && INDEPENDENT_CHECK)
-                {
-                    // Independence check of curr_edge with edges in OPEN that are in front of curr_edge
-                    for (auto& popped_edge_ptr : popped_edges)
-                    {
-                        if (popped_edge_ptr->parent_state_ptr_ != curr_edge_ptr->parent_state_ptr_)
-                        {
-                            auto h_diff = computeHeuristic(popped_edge_ptr->parent_state_ptr_, curr_edge_ptr->parent_state_ptr_);
-                            if (curr_edge_ptr->parent_state_ptr_->GetGValue() > popped_edge_ptr->parent_state_ptr_->GetGValue() + heuristic_w_*h_diff)
+                            auto h_diff = computeHeuristic(being_expanded_state, curr_edge_ptr->parent_state_ptr_);
+                            if (curr_edge_ptr->parent_state_ptr_->GetGValue() > being_expanded_state->GetGValue() + heuristic_w_*h_diff)
                             {
                                 if (VERBOSE) cout << "Independence check failed" << endl;
                                 curr_edge_ptr = NULL;
                                 break;
-                            }                        
+                            }
+                        }
+                    }
+     
+                    if (curr_edge_ptr)
+                    {
+                        // Independence check of curr_edge with edges in OPEN that are in front of curr_edge
+                        for (auto& popped_edge_ptr : popped_edges)
+                        {
+                            if (popped_edge_ptr->parent_state_ptr_ != curr_edge_ptr->parent_state_ptr_)
+                            {
+                                auto h_diff = computeHeuristic(popped_edge_ptr->parent_state_ptr_, curr_edge_ptr->parent_state_ptr_);
+                                if (curr_edge_ptr->parent_state_ptr_->GetGValue() > popped_edge_ptr->parent_state_ptr_->GetGValue() + heuristic_w_*h_diff)
+                                {
+                                    if (VERBOSE) cout << "Independence check failed" << endl;
+                                    curr_edge_ptr = NULL;
+                                    break;
+                                }                        
+                            }
                         }
                     }
                 }
@@ -171,7 +175,7 @@ bool QepasePlanner::Plan()
                     if (thread_id >= num_threads_current)
                     {
                         if (VERBOSE) cout << "Spawning edge expansion thread " << thread_id << endl;
-                        edge_expansion_futures_.emplace_back(async(launch::async, &QepasePlanner::expandEdgeLoop, this, thread_id));
+                        edge_expansion_futures_.emplace_back(async(launch::async, &QpasePlanner::expandEdgeLoop, this, thread_id));
                     }
                     locker.lock();
                     edge_expansion_vec_[thread_id] = curr_edge_ptr;
@@ -201,7 +205,7 @@ bool QepasePlanner::Plan()
     return false;
 }
 
-void QepasePlanner::expandEdgeLoop(int thread_id)
+void QpasePlanner::expandEdgeLoop(int thread_id)
 {
     while (!terminate_)
     {
@@ -222,7 +226,7 @@ void QepasePlanner::expandEdgeLoop(int thread_id)
     }    
 }
 
-void QepasePlanner::expandEdge(EdgePtrType edge_ptr, int thread_id)
+void QpasePlanner::expandEdge(EdgePtrType edge_ptr, int thread_id)
 {
     auto t_start = chrono::steady_clock::now();
     lock_.lock();
@@ -406,7 +410,7 @@ void QepasePlanner::expandEdge(EdgePtrType edge_ptr, int thread_id)
     lock_.unlock();
 }
 
-void QepasePlanner::initialize()
+void QpasePlanner::initialize()
 {
     // For now, do it explicitly
     // vector<StateVarsType> all_states_vars;
@@ -421,16 +425,16 @@ void QepasePlanner::initialize()
     if (planner_params_["dijkstra_heuristic"])
     {
         computeDijkstra();
-    auto start_edge_ptr = edge_open_list_.min();
-    start_edge_ptr->expansion_priority_ = heuristic_table_[start_state_ptr_->GetStateVars()[0]][start_state_ptr_->GetStateVars()[1]];
-    start_state_ptr_->SetHValue(start_edge_ptr->expansion_priority_);
-    start_state_ptr_->SetFValue(start_edge_ptr->expansion_priority_);
+        auto start_edge_ptr = edge_open_list_.min();
+        start_edge_ptr->expansion_priority_ = heuristic_table_[start_state_ptr_->GetStateVars()[0]][start_state_ptr_->GetStateVars()[1]];
+        start_state_ptr_->SetHValue(start_edge_ptr->expansion_priority_);
+        start_state_ptr_->SetFValue(start_edge_ptr->expansion_priority_);
     }
 
     being_expanded_states_.clear();
 }
 
-void QepasePlanner::exit()
+void QpasePlanner::exit()
 {
     being_expanded_states_.clear();
     // heuristic_table_.clear();
