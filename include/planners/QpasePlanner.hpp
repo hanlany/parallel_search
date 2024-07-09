@@ -5,7 +5,7 @@
 #include <condition_variable>
 #include <planners/GepasePlanner.hpp>
 
-#define INDEPENDENT_CHECK 0
+#define ORIGINAL_CHECK 0
 
 namespace ps
 {

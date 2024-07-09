@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
     // vector<int> scale_vec = {5, 5, 5, 10, 5};
     bool visualize_plan = true;
     bool load_starts_goals_from_file = true;
-    bool dijkstra_heuristic = false;
+    bool dijkstra_heuristic = true;
 
     // Define planner parameters
     ParamsType planner_params;

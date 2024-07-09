@@ -58,7 +58,7 @@ bool QpasePlanner::Plan()
                 if (curr_edge_ptr->parent_state_ptr_->IsBeingExpanded())
                     break;
 
-                if (INDEPENDENT_CHECK) 
+                if (ORIGINAL_CHECK)
                 {
                     // Independence check of curr_edge with edges in BE
                     for (auto& being_expanded_state : being_expanded_states_)
@@ -75,6 +75,40 @@ bool QpasePlanner::Plan()
                         }
                     }
      
+                    if (curr_edge_ptr)
+                    {
+                        // Independence check of curr_edge with edges in OPEN that are in front of curr_edge
+                        for (auto& popped_edge_ptr : popped_edges)
+                        {
+                            if (popped_edge_ptr->parent_state_ptr_ != curr_edge_ptr->parent_state_ptr_)
+                            {
+                                auto h_diff = computeHeuristic(popped_edge_ptr->parent_state_ptr_, curr_edge_ptr->parent_state_ptr_);
+                                if (curr_edge_ptr->parent_state_ptr_->GetGValue() > popped_edge_ptr->parent_state_ptr_->GetGValue() + heuristic_w_*h_diff)
+                                {
+                                    if (VERBOSE) cout << "Independence check failed" << endl;
+                                    curr_edge_ptr = NULL;
+                                    break;
+                                }                        
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Independence check against all the edges that are currently being evaluated
+                    for (auto being_evaluated_edge : edge_expansion_vec_)
+                    {
+                        if (!being_evaluated_edge)
+                            continue;
+                        auto h_diff = computeHeuristic(being_evaluated_edge->parent_state_ptr_, curr_edge_ptr->parent_state_ptr_);
+                        if (curr_edge_ptr->parent_state_ptr_->GetGValue() > being_evaluated_edge->parent_state_ptr_->GetGValue() + heuristic_w_*h_diff)
+                        {
+                            if (VERBOSE) cout << "Independence check failed" << endl;
+                            curr_edge_ptr = NULL;
+                            break;
+                        }
+                    }
+                    // Check against all the edges that is ahead of curr_edge in the open list
                     if (curr_edge_ptr)
                     {
                         // Independence check of curr_edge with edges in OPEN that are in front of curr_edge
