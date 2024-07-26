@@ -186,6 +186,11 @@ vector<double> RobotNav2dAction::GetDomainKnowledge()
     return vector<double>{static_cast<double>(map_.size()),static_cast<double>(map_[0].size())};
 }
 
+vector<vector<double>> RobotNav2dAction::GetHeuristicFactorMap()
+{
+    return heuristic_factor_map_;
+}
+
 bool RobotNav2dAction::isValidCell(int x, int y)
 {   
     int x_limit =  map_.size();

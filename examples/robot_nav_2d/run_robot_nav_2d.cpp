@@ -130,6 +130,8 @@ void computeDijkstraHeuristic(vector<vector<double>>& heuristic_table, vector<sh
     // Dijkstra heuristic
     // Resize the heuristic table
     vector<double> map_size = action_ptrs[0]->GetDomainKnowledge();
+    double hueristic_noise_factor = action_ptrs[0]->GetParams()["heuristic_noise_factor"];
+    vector<vector<double>> heuristic_factor_map = action_ptrs[0]->GetHeuristicFactorMap();
     heuristic_table.resize(map_size[0], vector<double>(map_size[1], DINF));
     // Data Structures
     priority_queue<pair<double, pair<int, int>>, vector<pair<double, pair<int, int>>>, greater<pair<double, pair<int, int>>>> pq;
@@ -152,7 +154,10 @@ void computeDijkstraHeuristic(vector<vector<double>>& heuristic_table, vector<sh
             continue;
 
         visited[x][y] = true;
-        heuristic_table[x][y] = cost;
+        double noise = 0;
+        if (!heuristic_factor_map.empty())
+            noise = (heuristic_factor_map[x][y] > 50) ? hueristic_noise_factor*(heuristic_factor_map[x][y] - 50) : 0;
+        heuristic_table[x][y] = cost + noise;
         max_cost = cost;
         
         // cout << "x: " << x << " y: " << y << " cost: " << cost << endl;
@@ -257,7 +262,7 @@ size_t EdgeKeyGenerator(const EdgePtrType& edge_ptr)
     return seed;
 }
 
-void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& action_params, vector<vector<int>>& map, vector<vector<double>>& cost_factor_map)
+void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& action_params, vector<vector<int>>& map, vector<vector<double>>& cost_factor_map, vector<vector<double>>& heuristic_factor_map)
 {
     // Define action parameters
     // action_params["length"] = 25;
@@ -267,32 +272,33 @@ void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& actio
     action_params["cache_footprint"] = 1;
     action_params["inflate_evaluation"] = 0;
     action_params["inflate_eval_loops"] = 2500;
+    action_params["heuristic_noise_factor"] = 0.05;
 
     ParamsType expensive_action_params = action_params;
     expensive_action_params["cache_footprint"] = 1;
     
-    auto move_up_controller_ptr = make_shared<MoveUpAction>("MoveUp", action_params, map, cost_factor_map);
+    auto move_up_controller_ptr = make_shared<MoveUpAction>("MoveUp", action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_up_controller_ptr);
 
-    auto move_up_right_controller_ptr = make_shared<MoveUpRightAction>("MoveUpRight", expensive_action_params, map, cost_factor_map);
+    auto move_up_right_controller_ptr = make_shared<MoveUpRightAction>("MoveUpRight", expensive_action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_up_right_controller_ptr);
 
-    auto move_right_controller_ptr = make_shared<MoveRightAction>("MoveRight", action_params, map, cost_factor_map);
+    auto move_right_controller_ptr = make_shared<MoveRightAction>("MoveRight", action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_right_controller_ptr);
 
-    auto move_right_down_controller_ptr = make_shared<MoveRightDownAction>("MoveRightDown", expensive_action_params, map, cost_factor_map);
+    auto move_right_down_controller_ptr = make_shared<MoveRightDownAction>("MoveRightDown", expensive_action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_right_down_controller_ptr);
 
-    auto move_down_controller_ptr = make_shared<MoveDownAction>("MoveDown", action_params, map, cost_factor_map);
+    auto move_down_controller_ptr = make_shared<MoveDownAction>("MoveDown", action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_down_controller_ptr);
 
-    auto move_down_left_controller_ptr = make_shared<MoveDownLeftAction>("MoveDownLeft", expensive_action_params, map, cost_factor_map);
+    auto move_down_left_controller_ptr = make_shared<MoveDownLeftAction>("MoveDownLeft", expensive_action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_down_left_controller_ptr);
 
-    auto move_left_controller_ptr = make_shared<MoveLeftAction>("MoveLeft", action_params, map, cost_factor_map);
+    auto move_left_controller_ptr = make_shared<MoveLeftAction>("MoveLeft", action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_left_controller_ptr);
 
-    auto move_left_up_controller_ptr = make_shared<MoveLeftUpAction>("MoveLeftUp", expensive_action_params, map, cost_factor_map);
+    auto move_left_up_controller_ptr = make_shared<MoveLeftUpAction>("MoveLeftUp", expensive_action_params, map, cost_factor_map, heuristic_factor_map);
     action_ptrs.emplace_back(move_left_up_controller_ptr);
 
 }
@@ -365,6 +371,7 @@ int main(int argc, char* argv[])
     int batch_size = 2000;
     double time_budget = 0;
     bool apply_cost_factor_map = false;
+    bool apply_heuristic_noise = true;
     double heuristic_weight = 50;
     double heuristic_reduction = 0.5;
     bool visualize_batch = false;
@@ -518,26 +525,33 @@ int main(int argc, char* argv[])
     
     vector<vector<vector<int>>> map_vec;
     vector<vector<vector<double>>> cost_factor_map_vec;
+    vector<vector<vector<double>>> heuristic_factor_map_vec; // Use the same as cost factor map for now
+    
     vector<cv::Mat> img_vec;
 
     map_vec.emplace_back(loadMap("../examples/robot_nav_2d/resources/hrt201n/hrt201n.map", img, width, height, scale_vec[0]));
     cost_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/hrt201n/hrt201n_cost_factor.map", width, height));
+    heuristic_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/hrt201n/hrt201n_cost_factor.map", width, height));
     img_vec.emplace_back(img.clone());
 
     map_vec.emplace_back(loadMap("../examples/robot_nav_2d/resources/den501d/den501d.map", img, width, height, scale_vec[1]));
     cost_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/den501d/den501d_cost_factor.map", width, height));
+    heuristic_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/den501d/den501d_cost_factor.map", width, height));
     img_vec.emplace_back(img.clone());
 
     map_vec.emplace_back(loadMap("../examples/robot_nav_2d/resources/den520d/den520d.map", img, width, height, scale_vec[2]));
     cost_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/den520d/den520d_cost_factor.map", width, height));
+    heuristic_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/den520d/den520d_cost_factor.map", width, height));
     img_vec.emplace_back(img.clone());
 
     map_vec.emplace_back(loadMap("../examples/robot_nav_2d/resources/ht_chantry/ht_chantry.map", img, width, height, scale_vec[3]));
     cost_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/ht_chantry/ht_chantry_cost_factor.map", width, height));
+    heuristic_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/ht_chantry/ht_chantry_cost_factor.map", width, height));
     img_vec.emplace_back(img.clone());
 
     map_vec.emplace_back(loadMap("../examples/robot_nav_2d/resources/brc203d/brc203d.map", img, width, height, scale_vec[4]));
     cost_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/brc203d/brc203d_cost_factor.map", width, height));
+    heuristic_factor_map_vec.emplace_back(loadCostFactorMap("../examples/robot_nav_2d/resources/brc203d/brc203d_cost_factor.map", width, height));
     img_vec.emplace_back(img.clone());
 
 
@@ -559,12 +573,13 @@ int main(int argc, char* argv[])
         auto map = map_vec[m_idx];
         auto img = img_vec[m_idx];
         auto cost_factor_map = apply_cost_factor_map ? cost_factor_map_vec[m_idx] : vector<vector<double>>();
+        auto heuristic_factor_map = apply_heuristic_noise ? heuristic_factor_map_vec[m_idx] : vector<vector<double>>();
         auto scale = scale_vec[m_idx];
 
         // Construct actions
         ParamsType action_params;
         vector<shared_ptr<Action>> action_ptrs;
-        constructActions(action_ptrs, action_params, map, cost_factor_map);
+        constructActions(action_ptrs, action_params, map, cost_factor_map, heuristic_factor_map);
 
         // Construct planner
         shared_ptr<Planner> planner_ptr;

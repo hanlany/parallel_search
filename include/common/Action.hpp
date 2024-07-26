@@ -22,6 +22,8 @@ public:
     virtual std::vector<bool> StateValidateBatch(std::vector<StateVarsType>& state_vars_vec, int thread_id=0)=0;
     virtual std::vector<StateVarsType> GetExplicitGraph(const StateVarsType& root_state_vars)=0;
     virtual std::vector<double> GetDomainKnowledge()=0;
+    virtual std::vector<std::vector<double>> GetHeuristicFactorMap()=0;
+    ParamsType GetParams() const {return params_;};
     std::string GetType() const {return type_;};
     bool IsExpensive() const {return is_expensive_;};
     bool operator==(const Action& other_action) const
