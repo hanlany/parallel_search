@@ -272,7 +272,6 @@ void constructActions(vector<shared_ptr<Action>>& action_ptrs, ParamsType& actio
     action_params["cache_footprint"] = 1;
     action_params["inflate_evaluation"] = 0;
     action_params["inflate_eval_loops"] = 2500;
-    action_params["heuristic_noise_factor"] = 0.05;
 
     ParamsType expensive_action_params = action_params;
     expensive_action_params["cache_footprint"] = 1;
@@ -365,6 +364,20 @@ void loadStartsGoalsFromFile(vector<vector<double>>& starts, vector<vector<doubl
     }
 }
 
+/// @brief Log the statistics of a planner to a file.
+void logStats(vector<double>& cost_vec, vector<int>& path_length_vec, vector<int>& num_edges_vec, int num_threads, double w, double noise_factor, string planner_name) {
+    // save the logs to a file in current directory
+    std::string log_file = "exp/euclidean/" + planner_name + "_"  + std::to_string(num_threads) + "_"  + std::to_string(w) + "_"  + std::to_string(noise_factor) + ".csv";
+    // save logs object to a file
+    std::ofstream file(log_file);
+    // header line
+    file << "Problem,Time,Cost,Num_expanded,Num_generated," << noise_factor << std::endl;
+    for (int i = 0; i < cost_vec.size(); i++) {
+        file << i << "," << cost_vec[i] << "," << path_length_vec[i] << "," << num_edges_vec[i] << std::endl;
+    }
+    file.close();
+}
+
 int main(int argc, char* argv[])
 {
     int num_threads;
@@ -372,9 +385,11 @@ int main(int argc, char* argv[])
     double time_budget = 0;
     bool apply_cost_factor_map = false;
     bool apply_heuristic_noise = true;
+    double heuristic_noise_factor = 0;
     double heuristic_weight = 50;
     double heuristic_reduction = 0.5;
     bool visualize_batch = false;
+    bool dijkstra_heuristic = true;
 
     if (!strcmp(argv[1], "wastar"))
     {
@@ -384,6 +399,12 @@ int main(int argc, char* argv[])
         {
             num_threads = 1;
             heuristic_weight = atof(argv[2]);
+        }
+        else if (argc == 4)
+        {
+            num_threads = 1;
+            heuristic_weight = atof(argv[2]);
+            dijkstra_heuristic = atoi(argv[3]);
         }
         else
             throw runtime_error("Format: run_robot_nav_2d wastar");
@@ -468,6 +489,19 @@ int main(int argc, char* argv[])
             num_threads = atoi(argv[2]);
             heuristic_weight = atof(argv[3]);
         }
+        else if (argc == 5)
+        {
+            num_threads = atoi(argv[2]);
+            heuristic_weight = atof(argv[3]);
+            dijkstra_heuristic= atoi(argv[4]);
+        }
+        else if (argc == 6)
+        {
+            num_threads = atoi(argv[2]);
+            heuristic_weight = atof(argv[3]);
+            dijkstra_heuristic= atoi(argv[4]);
+            heuristic_noise_factor = atof(argv[5]);
+        }
         else
             throw runtime_error("Format: run_robot_nav_2d epase [num_threads] [heuristic_weight]");
     }
@@ -482,6 +516,19 @@ int main(int argc, char* argv[])
             num_threads = atoi(argv[2]);
             heuristic_weight = atof(argv[3]);
         }
+        else if (argc == 5)
+        {
+            num_threads = atoi(argv[2]);
+            heuristic_weight = atof(argv[3]);
+            dijkstra_heuristic= atoi(argv[4]);
+        }
+        else if (argc == 6)
+        {
+            num_threads = atoi(argv[2]);
+            heuristic_weight = atof(argv[3]);
+            dijkstra_heuristic= atoi(argv[4]);
+            heuristic_noise_factor = atof(argv[5]);
+        }
         else
             throw runtime_error("Format: run_robot_nav_2d qpase [num_threads] [heuristic_weight]");
     }
@@ -493,13 +540,13 @@ int main(int argc, char* argv[])
     
 
     // Experiment parameters
-    int num_runs = 10;
+    int num_runs = 50;
     // vector<int> scale_vec = {2, 2, 2, 4, 2};
     vector<int> scale_vec = {1, 1, 1, 1, 1};
     // vector<int> scale_vec = {5, 5, 5, 10, 5};
     bool visualize_plan = true;
+    // bool visualize_plan = false;
     bool load_starts_goals_from_file = true;
-    bool dijkstra_heuristic = true;
 
     // Define planner parameters
     ParamsType planner_params;
@@ -578,6 +625,7 @@ int main(int argc, char* argv[])
 
         // Construct actions
         ParamsType action_params;
+        action_params["heuristic_noise_factor"] = heuristic_noise_factor;
         vector<shared_ptr<Action>> action_ptrs;
         constructActions(action_ptrs, action_params, map, cost_factor_map, heuristic_factor_map);
 
@@ -744,6 +792,8 @@ int main(int argc, char* argv[])
 
             }  
         }
+        
+        logStats(cost_vec, path_length_vec, num_edges_vec, planner_params["num_threads"], planner_params["heuristic_weight"], action_params["heuristic_noise_factor"], planner_name);
 
         cout << endl << "************************" << endl;
         cout << "Number of runs: " << num_runs << endl;
